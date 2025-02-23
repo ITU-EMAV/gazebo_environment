@@ -8,7 +8,7 @@ from launch_ros.actions import Node, SetParameter
 
 
 def generate_launch_description():
-    package_description = "gazebo_project"
+    package_description = "gazebo_environment"
     package_directory = get_package_share_directory(package_description)
 
     # Set the Path to Robot Mesh Models for Loading in Gazebo Sim

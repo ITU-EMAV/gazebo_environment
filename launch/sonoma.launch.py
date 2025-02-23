@@ -8,12 +8,14 @@ from launch_ros.actions import Node, SetParameter
 
 
 def generate_launch_description():
-    package_description = "gazebo_project"
+    package_description = "gazebo_environment"
     package_directory = get_package_share_directory(package_description)
 
     # Set the Path to Robot Mesh Models for Loading in Gazebo Sim
     install_dir_path = get_package_prefix(package_description) + "/share"
+
     robot_meshes_path = os.path.join(package_directory, "meshes")
+    
     gazebo_resource_paths = [install_dir_path, robot_meshes_path]
     if "IGN_GAZEBO_RESOURCE_PATH" in os.environ:
         for resource_path in gazebo_resource_paths:
@@ -242,7 +244,7 @@ def generate_launch_description():
     )
 
     odometry_tf = Node(
-        package="gazebo_project",
+        package="gazebo_environment",
         executable="odometry_tf",
         name="odometry_tf",
         output="screen",

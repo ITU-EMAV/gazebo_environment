@@ -7,7 +7,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     use_sim_time = True
-    package_directory = get_package_share_directory("gazebo_project")
+    package_directory = get_package_share_directory("gazebo_environment")
     # path of the robot urdf file
     robot_desc_path = os.path.join(package_directory, "urdf", "robot.urdf")
     rviz_config_path = os.path.join(package_directory, "rviz", "config.rviz")

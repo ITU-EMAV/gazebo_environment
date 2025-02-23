@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 
 <robot name="robot" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:include filename="$(find gazebo_project)/urdf/common_properties.urdf.xacro" />
+  <xacro:include filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
 
   <link name="base_link">
     <xacro:cuboid_inertia mass="1.0" x="0.1" y="0.1" z="0.1" />
@@ -12,7 +12,7 @@
     <visual name="chassis_visual">
       <origin rpy="1.57 0 1.57" xyz="0 0 0" />
       <geometry>
-        <mesh filename="package://gazebo_project/meshes/smart_car.obj"
+        <mesh filename="package://gazebo_environment/meshes/smart_car.obj"
           scale="0.012 0.012
         0.013" />
       </geometry>

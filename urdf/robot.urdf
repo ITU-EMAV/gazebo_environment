@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <robot name="robot" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:include filename="$(find gazebo_project)/urdf/oakd.urdf.xacro" />
-  <xacro:include filename="$(find gazebo_project)/urdf/common_properties.urdf.xacro" />
+  <xacro:include filename="$(find gazebo_environment)/urdf/oakd.urdf.xacro" />
+  <xacro:include filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
   <xacro:property name="oakd_pro_x_offset" value="2.0" />
   <xacro:property name="oakd_pro_y_offset" value="0.0" />
   <xacro:property name="oakd_pro_z_offset" value="3.0" />
@@ -21,7 +21,7 @@
     <visual name="chassis_visual">
       <origin rpy="1.57 0 1.57" xyz="0 0 0" />
       <geometry>
-        <mesh filename="package://gazebo_project/meshes/smart_car.obj"
+        <mesh filename="package://gazebo_environment/meshes/smart_car.obj"
           scale="0.012 0.012
         0.013" />
       </geometry>

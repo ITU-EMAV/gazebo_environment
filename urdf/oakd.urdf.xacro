@@ -3,7 +3,7 @@
 
     <xacro:macro name="oakd" params="name:=oakd parent_link *origin model:=pro">
         <xacro:include
-            filename="$(find gazebo_project)/urdf/common_properties.urdf.xacro" />
+            filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
 
         <xacro:property name="mass" value="0.061" />
         <xacro:property name="baseline" value="0.075" />
@@ -30,7 +30,7 @@
             <visual>
                 <geometry>
                     <mesh
-                        filename="package://gazebo_project/meshes/${name}_${model}.dae"
+                        filename="package://gazebo_environment/meshes/${name}_${model}.dae"
                         scale="1 1 1" />
                 </geometry>
             </visual>

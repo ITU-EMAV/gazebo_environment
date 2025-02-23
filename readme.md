@@ -25,46 +25,46 @@ sudo apt install ros-humble-ros-gz-sim ros-humble-ros-gz-bridge ros-humble-xacro
 Go to the your ros2 workspace and create a Python package. `urdf` and `xacro` packages are dependencies of this package.
 ```bash
 cd ~/ros2_ws/src \
-ros2 pkg create gazebo_project --build-type ament_python --dependencies rclpy urdf xacro
+ros2 pkg create gazebo_environment --build-type ament_python --dependencies rclpy urdf xacro
 ```
 Create the URDF directory to put the robot's URDF file
 ```bash
-mkdir -p gazebo_project/urdf
+mkdir -p gazebo_environment/urdf
 ```
 
 Create the robot's urdf file
 ```bash
-touch gazebo_project/urdf/robot.urdf
+touch gazebo_environment/urdf/robot.urdf
 ```
 Create the world directory to put the simulation world file
 ```bash
-mkdir -p gazebo_project/worlds
+mkdir -p gazebo_environment/worlds
 ```
 
 Create the `demo_world.sdf` file
 ```bash
-touch gazebo_project/worlds/demo_world.sdf
+touch gazebo_environment/worlds/demo_world.sdf
 ```
 
 Create the launch directory to put the launch files
 ```bash
-mkdir -p gazebo_project/launch
+mkdir -p gazebo_environment/launch
 ```
 
 Create the `rviz.launch.py` file to inspect robot's urdf with rviz.
 ```bash
-touch gazebo_project/launch/rviz.launch.py
+touch gazebo_environment/launch/rviz.launch.py
 ```
 Create the `simulation.launch.py` to run simulation with created map and robot.
 ```bash
-touch gazebo_project/launch/simulation.launch.py
+touch gazebo_environment/launch/simulation.launch.py
 ```
 Create the meshes directory to put the robot's .obj file
 ```bash
-mkdir -p gazebo_project/meshes
+mkdir -p gazebo_environment/meshes
 ```
 
-Then, move `smart_car.obj` file from this repo to `gazebo_project/meshes` directory.
+Then, move `smart_car.obj` file from this repo to `gazebo_environment/meshes` directory.
 
 ---
 ## Creating the robot
@@ -74,7 +74,7 @@ Inside of the URDF file, add the xml and robot tags. Include the "common_propert
 <?xml version="1.0"?>
 
 <robot name="robot" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:include filename="$(find gazebo_project)/urdf/common_properties.urdf.xacro" />
+  <xacro:include filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
 
 
 </robot>
@@ -94,7 +94,7 @@ Chassis' visual will be a .obj file named smart_car.obj that located in meshes f
     <visual name="chassis_visual">
       <origin rpy="1.57 0 1.57" xyz="0 0 0" />
       <geometry>
-        <mesh filename="package://gazebo_project/meshes/smart_car.obj"
+        <mesh filename="package://gazebo_environment/meshes/smart_car.obj"
           scale="0.012 0.012
         0.013" />
       </geometry>
@@ -390,7 +390,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     use_sim_time = True
-    package_directory = get_package_share_directory("gazebo_project")
+    package_directory = get_package_share_directory("gazebo_environment")
     # path of the robot urdf file
     robot_desc_path = os.path.join(package_directory, "urdf", "robot.urdf")
 
@@ -619,19 +619,19 @@ from glob import glob
 
 Then, build the package and source install/setup.bash.
 ```bash
-colcon build --packages-select gazebo_project && source install/setup.bash
+colcon build --packages-select gazebo_environment && source install/setup.bash
 ```
 ****IMPORTANT****: If you make any changes to the files in this project, you need to do the build and source step!
 
 - To test to URDF file, run:
 ```bash
-ros2 launch gazebo_project rviz.launch.py
+ros2 launch gazebo_environment rviz.launch.py
 ```
 Add set fixed frame to `link_chassis` and add RobotModel visualization. 
 
 - To test the whole simulation, run:
 ```bash
-ros2 launch gazebo_project simulation.launch.py
+ros2 launch gazebo_environment simulation.launch.py
 ```
 
 Do not run these 2 launch files at the same time.
