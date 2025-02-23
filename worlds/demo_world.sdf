@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+
+<sdf version="1.8">
+
+    <world name="demo_world">
+
+        <!-- Properties for NavSat sensor -->
+        <spherical_coordinates>
+            <surface_model>EARTH_WGS84</surface_model>
+            <world_frame_orientation>ENU</world_frame_orientation>
+            <latitude_deg>41.10410</latitude_deg>
+            <longitude_deg>29.02376</longitude_deg>
+            <elevation>0</elevation>
+            <heading_deg>0</heading_deg>
+        </spherical_coordinates>
+
+
+        <!-- Ground Plane -->
+        <model name='ground_plane'>
+            <pose>0 0 0 0 0 0</pose>
+            <self_collide>false</self_collide>
+            <static>true</static>
+            <link name='ground'>
+                <pose>0 0 0 0 0 0</pose>
+                <enable_wind>false</enable_wind>
+                <visual name='visual'>
+                    <geometry>
+                        <plane>
+                            <normal>0 0 1</normal>
+                            <size>1000 1000</size>
+                        </plane>
+                    </geometry>
+                    <material>
+                        <ambient>0.8 0.8 0.8 1</ambient>
+                        <diffuse>0.8 0.8 0.8 1</diffuse>
+                        <specular>0.8 0.8 0.8 1</specular>
+                        <emissive>0.0 0.0 0.0 1</emissive>
+                    </material>
+                </visual>
+                <collision name='collision'>
+                    <geometry>
+                        <plane>
+                            <normal>0 0 1</normal>
+                            <size>1000 1000</size>
+                        </plane>
+                    </geometry>
+                    <surface>
+                        <friction>
+                            <ode>
+                            </ode>
+                        </friction>
+                        <bounce />
+                        <contact />
+                    </surface>
+                </collision>
+                <inertial>
+                    <pose>0 0 0 0 0 0</pose>
+                    <mass>1</mass>
+                    <inertia>
+                        <ixx>1</ixx>
+                        <ixy>0</ixy>
+                        <ixz>0</ixz>
+                        <iyy>1</iyy>
+                        <iyz>0</iyz>
+                        <izz>1</izz>
+                    </inertia>
+                </inertial>
+            </link>
+        </model>
+
+        <!-- Light -->
+        <light type="directional" name="sun">
+            <cast_shadows>true</cast_shadows>
+            <pose>0 0 10 0 0 0</pose>
+            <diffuse>0.8 0.8 0.8 1</diffuse>
+            <specular>0.2 0.2 0.2 1</specular>
+            <attenuation>
+                <range>1000</range>
+                <constant>0.9</constant>
+                <linear>0.01</linear>
+                <quadratic>0.001</quadratic>
+            </attenuation>
+            <direction>-0.5 0.1 -0.9</direction>
+        </light>
+
+        <!-- Apartment Model -->
+        <include>
+            <uri>
+                https://fuel.gazebosim.org/1.0/chapulina/models/Apartment
+            </uri>
+            <name>apartment</name>
+            <pose>20 0 0 0 0 0</pose>
+        </include>
+
+        <!-- Cones -->
+        <include>
+            <uri>
+                https://fuel.gazebosim.org/1.0/OpenRobotics/models/Construction Cone
+            </uri>
+            <name>cone_1</name>
+            <pose>2 -2 0 0 0 0</pose>
+        </include>
+
+        <include>
+            <uri>
+                https://fuel.gazebosim.org/1.0/adlarkin/models/Construction Cone Label Test
+
+            </uri>
+            <pose>4 -2 0 0 0 0</pose>
+
+        </include>
+    </world>
+</sdf>
