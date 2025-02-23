@@ -2,7 +2,7 @@ import os
 from glob import glob
 from setuptools import find_packages, setup
 
-package_name = "gazebo_project"
+package_name = "gazebo_environment"
 
 setup(
     name=package_name,
@@ -19,14 +19,14 @@ setup(
     ],
     install_requires=["setuptools"],
     zip_safe=True,
-    maintainer="nuke",
-    maintainer_email="iamburakglr@gmail.com",
+    maintainer="MrSkyGodz",
+    maintainer_email="yunus.akdal@gmail.com",
     description="TODO: Package description",
     license="TODO: License declaration",
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "odometry_tf = gazebo_project.odometry_tf:main",
+            "odometry_tf = gazebo_environment.odometry_tf:main",
         ],
     },
 )
