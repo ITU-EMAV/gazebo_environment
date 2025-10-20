@@ -1,10 +1,9 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-    <xacro:macro name="oakd" params="name:=oakd parent_link *origin model:=pro">
-        <xacro:include
-            filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
-
+    <xacro:macro name="camera" params="name parent_link *origin namespace">
+        <xacro:include filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
+        <xacro:include filename="$(find gazebo_environment)/urdf/imu.urdf.xacro" />
         <xacro:property name="mass" value="0.061" />
         <xacro:property name="baseline" value="0.075" />
         <xacro:property name="M_PI" value="3.1415926535897931" />
@@ -17,7 +16,7 @@
         <xacro:property name="collision_offset_y" value="${0*cm2m}" />
         <xacro:property name="collision_offset_z" value="${-0.5*cm2m}" />
 
-        <xacro:property name="base_frame" value="oakd_link" />
+        <xacro:property name="base_frame" value="${name}_camera_link" />
 
         <!-- Base frame -->
         <joint name="${name}_joint" type="fixed">
@@ -30,7 +29,7 @@
             <visual>
                 <geometry>
                     <mesh
-                        filename="package://gazebo_environment/meshes/${name}_${model}.dae"
+                        filename="package://gazebo_environment/meshes/oakd_pro.dae"
                         scale="1 1 1" />
                 </geometry>
             </visual>
@@ -111,18 +110,22 @@
             <child link="${name}_right_camera_optical_frame" />
         </joint>
 
-        <!-- IMU -->
-        <link name="${name}_imu_frame">
-            <xacro:inertial_dummy />
-        </link>
 
-        <joint name="${name}_imu_joint" type="fixed">
-            <parent link="${base_frame}" />
-            <child link="${name}_imu_frame" />
-            <origin xyz="0 0 0" rpy="-${M_PI/2} 0 -${M_PI/2}" />
-        </joint>
+        <!-- IMU -->
+        <xacro:imu name="${name}" parent_link="${base_frame}" namespace="${namespace}">
+            <origin xyz="0.0 0.0 0.0" rpy="-${M_PI/2} 0 -${M_PI/2}" />
+        </xacro:imu>
 
         <!-- Gazebo links and joints -->
+
+        <gazebo>
+            <plugin
+                filename="gz-sim-sensors-system"
+                name="gz::sim::systems::Sensors">
+                <render_engine>ogre2</render_engine>
+            </plugin>
+        </gazebo>
+        
         <gazebo reference="${name}_rgb_camera_frame">
             <sensor name="rgbd_camera" type="rgbd_camera">
                 <camera>
@@ -140,9 +143,11 @@
                 <always_on>1</always_on>
                 <update_rate>30</update_rate>
                 <visualize>true</visualize>
+                <topic>${namespace}/sensors/${name}</topic>
             </sensor>
             <xacro:material_darkgray />
         </gazebo>
+
 
         <gazebo reference="${name}_joint">
             <preserveFixedJoint>true</preserveFixedJoint>

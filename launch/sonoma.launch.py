@@ -26,6 +26,8 @@ def generate_launch_description():
 
     # Load Demo World SDF from Robot Description Package
     world = "sonoma"
+    robot_name = "sac"
+    namespace = robot_name
 
     world_file = f"{world}.sdf"
     world_file_path = os.path.join(package_directory, "worlds", world_file)
@@ -35,77 +37,20 @@ def generate_launch_description():
     )
 
     # Declare Gazebo Sim Launch file
-    gzsim_pkg = get_package_share_directory("ros_gz_sim")
-    gz_sim = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([gzsim_pkg, "launch", "gz_sim.launch.py"])
-        ),
-        launch_arguments={"gz_args": world_config}.items(),
-    )
+    gz_sim = create_world(world_config)
+    
 
     # Load the urdf
-    urdf_file = "robot.urdf"
+    urdf_file = "sac.urdf.xacro"
     robot_desc_path = os.path.join(package_directory, "urdf", urdf_file)
 
-    robot_state_publisher_node = Node(
-        package="robot_state_publisher",
-        executable="robot_state_publisher",
-        name="robot_state_publisher_node",
-        output="screen",
-        emulate_tty=True,
-        parameters=[
-            {
-                "use_sim_time": True,
-                "robot_description": Command(["xacro ", robot_desc_path]),
-            }
-        ],
-    )
+    robot_state_publisher_node = decleare_entity(namespace,robot_desc_path)
+    xyz = [277.88,-135.2,3.0]
+    rpy = [0.0,0.02,-0.66]
+    
+    gz_spawn_entity = spawn_entity(robot_name,[277.88,-135.2,3.0],[0.0,0.02,-0.66])
 
-    # declare robot spawn position
-    declare_spawn_x = DeclareLaunchArgument(
-        "x", default_value="277.88", description="Model Spawn X Axis Value"
-    )
-    declare_spawn_y = DeclareLaunchArgument(
-        "y", default_value="-135.2", description="Model Spawn Y Axis Value"
-    )
-    declare_spawn_z = DeclareLaunchArgument(
-        "z", default_value="3.0", description="Model Spawn Z Axis Value"
-    )
-    declare_spawn_R = DeclareLaunchArgument(
-        "R", default_value="0.0", description="Model Spawn Roll Value"
-    )
-    declare_spawn_P = DeclareLaunchArgument(
-        "P", default_value="0.02", description="Model Spawn Pitch Value"
-    )
-    declare_spawn_Y = DeclareLaunchArgument(
-        "Y", default_value="-0.66", description="Model Spawn Yaw Value"
-    )
-    gz_spawn_entity = Node(
-        package="ros_gz_sim",
-        executable="create",
-        name="my_robot_spawn",
-        arguments=[
-            "-name",
-            "my_robot",
-            "-allow_renaming",
-            "true",
-            "-topic",
-            "robot_description",
-            "-x",
-            LaunchConfiguration("x"),
-            "-y",
-            LaunchConfiguration("y"),
-            "-z",
-            LaunchConfiguration("z"),
-            "-R",
-            LaunchConfiguration("R"),
-            "-P",
-            LaunchConfiguration("P"),
-            "-Y",
-            LaunchConfiguration("Y"),
-        ],
-        output="screen",
-    )
+
 
     ign_bridge = Node(
         package="ros_gz_bridge",
@@ -113,20 +58,25 @@ def generate_launch_description():
         name="ign_bridge",
         arguments=[
             "/clock" + "@rosgraph_msgs/msg/Clock" + "[ignition.msgs.Clock",
+
             "/cmd_vel" + "@geometry_msgs/msg/Twist" + "@ignition.msgs.Twist",
+
             "/tf" + "@tf2_msgs/msg/TFMessage" + "[ignition.msgs.Pose_V",
+
             "/odom" + "@nav_msgs/msg/Odometry" + "[ignition.msgs.Odometry",
-            f"/world/{world}/model/my_robot/joint_state"
+            
+            f"/world/{world}/model/{robot_name}/joint_state"
             + "@sensor_msgs/msg/JointState"
             + "[ignition.msgs.Model",
-            "/imu" + "@sensor_msgs/msg/Imu" + "[ignition.msgs.IMU",
+
             # "/laser/scan" + "@sensor_msgs/msg/LaserScan" + "[ignition.msgs.LaserScan",
+
             f"/world/{world}/pose/info"
             + "@geometry_msgs/msg/PoseArray"
             + "[ignition.msgs.Pose_V",
         ],
         remappings=[
-            (f"/world/{world}/model/my_robot/joint_state", "/joint_states"),
+            (f"/world/{world}/model/{robot_name}/joint_state", "/joint_states"),
             (f"/world/{world}/pose/info", "/pose_info"),
         ],
         output="screen",
@@ -152,96 +102,10 @@ def generate_launch_description():
             ("/tf_static", "tf_static"),
         ],
     )
+    imu_bridge = create_imu_brige(namespace,"middle_imu")
+    oakd_camera_bridge = create_camera_brige(namespace,"front_camera")
 
-    robot_name = "my_robot"
-
-    oakd_camera_bridge = Node(
-        package="ros_gz_bridge",
-        executable="parameter_bridge",
-        name="camera_bridge",
-        output="screen",
-        parameters=[{"use_sim_time": True}],
-        arguments=[
-            [
-                "/world/",
-                world,
-                "/model/",
-                robot_name,
-                "/link/oakd_rgb_camera_frame/sensor/rgbd_camera/image"
-                + "@sensor_msgs/msg/Image"
-                + "[ignition.msgs.Image",
-            ],
-            [
-                "/world/",
-                world,
-                "/model/",
-                robot_name,
-                "/link/oakd_rgb_camera_frame/sensor/rgbd_camera/depth_image"
-                + "@sensor_msgs/msg/Image"
-                + "[ignition.msgs.Image",
-            ],
-            [
-                "/world/",
-                world,
-                "/model/",
-                robot_name,
-                "/link/oakd_rgb_camera_frame/sensor/rgbd_camera/points"
-                + "@sensor_msgs/msg/PointCloud2"
-                + "[ignition.msgs.PointCloudPacked",
-            ],
-            [
-                "/world/",
-                world,
-                "/model/",
-                robot_name,
-                "/link/oakd_rgb_camera_frame/sensor/rgbd_camera/camera_info"
-                + "@sensor_msgs/msg/CameraInfo"
-                + "[ignition.msgs.CameraInfo",
-            ],
-        ],
-        remappings=[
-            (
-                [
-                    "/world/",
-                    world,
-                    "/model/",
-                    robot_name,
-                    "/link/oakd_rgb_camera_frame/sensor/rgbd_camera/image",
-                ],
-                "oakd/rgb/image_raw",
-            ),
-            (
-                [
-                    "/world/",
-                    world,
-                    "/model/",
-                    robot_name,
-                    "/link/oakd_rgb_camera_frame/sensor/rgbd_camera/depth_image",
-                ],
-                "oakd/rgb/depth",
-            ),
-            (
-                [
-                    "/world/",
-                    world,
-                    "/model/",
-                    robot_name,
-                    "/link/oakd_rgb_camera_frame/sensor/rgbd_camera/points",
-                ],
-                "oakd/rgb/depth/points",
-            ),
-            (
-                [
-                    "/world/",
-                    world,
-                    "/model/",
-                    robot_name,
-                    "/link/oakd_rgb_camera_frame/sensor/rgbd_camera/camera_info",
-                ],
-                "oakd/rgb/camera_info",
-            ),
-        ],
-    )
+    
 
     odometry_tf = Node(
         package="gazebo_environment",
@@ -255,17 +119,147 @@ def generate_launch_description():
             SetParameter(name="use_sim_time", value=True),
             declare_world_arg,
             gz_sim,
+            # declare_spawn_x,
+            # declare_spawn_y,
+            # declare_spawn_z,
+            # declare_spawn_R,
+            # declare_spawn_P,
+            # declare_spawn_Y,
+
             robot_state_publisher_node,
-            declare_spawn_x,
-            declare_spawn_y,
-            declare_spawn_z,
-            declare_spawn_R,
-            declare_spawn_P,
-            declare_spawn_Y,
             gz_spawn_entity,
             ign_bridge,
-            cam_tf_node,
+            # cam_tf_node,
             oakd_camera_bridge,
+            imu_bridge,
             odometry_tf,
         ]
     )
+def create_world(world_config):
+    gzsim_pkg = get_package_share_directory("ros_gz_sim")
+    gz_sim = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution([gzsim_pkg, "launch", "gz_sim.launch.py"])
+        ),
+        launch_arguments={"gz_args": world_config}.items(),
+    )
+    return gz_sim
+
+def decleare_entity(namespace, robot_desc_path):
+    
+    robot_description = Command([
+        'xacro ', robot_desc_path, 
+        ' namespace:=' , namespace
+    ])
+
+    robot_state_publisher_node = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        name="robot_state_publisher_node",
+        output="screen",
+        emulate_tty=True,
+        parameters=[
+            {
+                "use_sim_time": True,
+                "robot_description": robot_description,
+            }
+        ],
+    )
+
+
+    return robot_state_publisher_node
+
+def spawn_entity(name,xyz,rpy):
+    gz_spawn_entity = Node(
+        package="ros_gz_sim",
+        executable="create",
+        name="my_robot_spawn",
+        arguments=[
+            "-name",
+            name,
+            "-allow_renaming",
+            "true",
+            "-topic",
+            "robot_description",
+            "-x",
+            str(xyz[0]),
+            "-y",
+            str(xyz[1]),
+            "-z",
+            str(xyz[2]),
+            "-R",
+            str(rpy[0]),
+            "-P",
+            str(rpy[1]),
+            "-Y",
+            str(rpy[2]),
+        ],
+        output="screen",
+    )
+
+    return gz_spawn_entity
+    
+    
+
+def create_camera_brige(namespace,camera_name):
+    camera_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        name="camera_bridge",
+        output="screen",
+        parameters=[{"use_sim_time": True}],
+        arguments=[
+            [
+                namespace,
+                f"/sensors/{camera_name}/image"
+                + "@sensor_msgs/msg/Image"
+                + "[ignition.msgs.Image",
+            ],
+            [
+                namespace,
+                f"/sensors/{camera_name}/depth_image"
+                + "@sensor_msgs/msg/Image"
+                + "[ignition.msgs.Image",
+            ],
+            [
+                namespace,
+                f"/sensors/{camera_name}/points"
+                + "@sensor_msgs/msg/PointCloud2"
+                + "[ignition.msgs.PointCloudPacked",
+            ],
+            [
+                namespace,
+                f"/sensors/{camera_name}/camera_info"
+                + "@sensor_msgs/msg/CameraInfo"
+                + "[ignition.msgs.CameraInfo",
+            ],
+            [
+                namespace,
+                f"/sensors/{camera_name}/imu"
+                + "@sensor_msgs/msg/Imu"
+                + "[ignition.msgs.IMU",
+            ],
+        ]
+    )
+
+    return camera_bridge
+
+
+def create_imu_brige(namespace,imu_name):
+    imu_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        name="imu_bridge",
+        output="screen",
+        parameters=[{"use_sim_time": True}],
+        arguments=[
+            [
+                namespace,
+                f"/sensors/{imu_name}/imu"
+                + "@sensor_msgs/msg/Imu"
+                + "[ignition.msgs.IMU",
+            ],
+        ]
+    )
+
+    return imu_bridge

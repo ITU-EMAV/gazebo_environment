@@ -1,11 +1,15 @@
 <?xml version="1.0"?>
 
-<robot name="robot" xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:include filename="$(find gazebo_environment)/urdf/oakd.urdf.xacro" />
+<robot name="sac" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:arg name="namespace" default=""/>
+  <xacro:include filename="$(find gazebo_environment)/urdf/imu.urdf.xacro" />
+  <xacro:include filename="$(find gazebo_environment)/urdf/camera.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
-  <xacro:property name="oakd_pro_x_offset" value="2.0" />
-  <xacro:property name="oakd_pro_y_offset" value="0.0" />
-  <xacro:property name="oakd_pro_z_offset" value="3.0" />
+  <xacro:property name="camera_x_offset" value="2.0" />
+  <xacro:property name="camera_y_offset" value="0.0" />
+  <xacro:property name="camera_z_offset" value="3.0" />
+  
 
   <link name="base_link">
     <xacro:cuboid_inertia mass="1.0" x="0.1" y="0.1" z="0.1" />
@@ -85,14 +89,7 @@
 
   <!-- Rear Right Wheel -->
   <link name="rear_right_wheel">
-    <!-- <inertial>
-      <mass value="11.0" />
-      <inertia ixx="0.58" ixy="0.0" iyy="0.33" ixz="0.0" iyz="0.0" izz="0.33" />
-    </inertial> -->
-
     <xacro:inertial_cylinder mass="11.0" radius="0.25" length="0.15" />
-
-
     <visual name="rear_right_wheel_visual">
       <geometry>
         <cylinder radius="0.25" length="0.15" />
@@ -127,13 +124,7 @@
 
   <!-- Front Left Wheel -->
   <link name="front_left_wheel">
-    <!-- <inertial>
-      <mass value="11.0" />
-      <inertia ixx="0.58" ixy="0.0" iyy="0.33" ixz="0.0" iyz="0.0" izz="0.33" />
-    </inertial> -->
-
     <xacro:inertial_cylinder mass="11.0" radius="0.25" length="0.15" />
-
 
     <visual name="front_left_wheel_visual">
       <geometry>
@@ -179,13 +170,7 @@
 
   <!-- Front Right Wheel -->
   <link name="front_right_wheel">
-    <!-- <inertial>
-      <mass value="11.0" />
-      <inertia ixx="0.58" ixy="0.0" iyy="0.33" ixz="0.0" iyz="0.0" izz="0.33" />
-    </inertial> -->
-
     <xacro:inertial_cylinder mass="11.0" radius="0.25" length="0.15" />
-
 
     <visual name="front_right_wheel_visual">
       <geometry>
@@ -210,10 +195,6 @@
   </link>
 
   <link name="front_right_wheel_steering_link">
-    <!-- <inertial>
-      <mass value="1.0" />
-      <inertia ixx="0.58" ixy="0.0" iyy="0.33" ixz="0.0" iyz="0.0" izz="0.33" />
-    </inertial> -->
     <xacro:cuboid_inertia mass="1.0" x="0.1" y="0.1" z="0.1" />
 
   </link>
@@ -235,9 +216,17 @@
     <joint_properties damping="1.0" friction="1.0" />
   </joint>
 
-  <xacro:oakd model="pro" parent_link="link_chassis">
-    <origin xyz="${oakd_pro_x_offset} ${oakd_pro_y_offset} ${oakd_pro_z_offset}" rpy="0.0 0.9 0.0" />
-  </xacro:oakd>
+<!-- Camera Plugin -->
+  <xacro:camera name="front_camera" parent_link="link_chassis" namespace="$(arg namespace)">
+    <origin xyz="${camera_x_offset} ${camera_y_offset} ${camera_z_offset}" rpy="0.0 0.9 0.0" />
+  </xacro:camera>
+
+<!-- IMU Plugin -->
+
+<xacro:imu name="middle_imu" parent_link="link_chassis" namespace="$(arg namespace)">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  </xacro:imu>
+
 
 
   <!-- Ackermann steering plugin -->
@@ -270,28 +259,7 @@
       name="ignition::gazebo::systems::JointStatePublisher" />
   </gazebo>
 
-  <!-- IMU Plugin -->
-  <gazebo>
-    <plugin filename="ignition-gazebo-imu-system"
-      name="ignition::gazebo::systems::Imu">
-    </plugin>
-  </gazebo>
-  <gazebo reference="link_chassis">
-    <sensor name="imu_sensor" type="imu">
-      <always_on>1</always_on>
-      <update_rate>20</update_rate>
-      <visualize>true</visualize>
-      <topic>imu</topic>
-    </sensor>
-  </gazebo>
-
-  <gazebo>
-    <plugin
-      filename="gz-sim-sensors-system"
-      name="gz::sim::systems::Sensors">
-      <render_engine>ogre2</render_engine>
-    </plugin>
-  </gazebo>
+ 
 
   <!-- NavSat -->
   <gazebo>
@@ -300,6 +268,7 @@
       name="ignition::gazebo::systems::NavSat">
     </plugin>
   </gazebo>
+  
   <gazebo reference="link_chassis">
     <sensor name="navsat_sensor" type="navsat">
       <always_on>1</always_on>

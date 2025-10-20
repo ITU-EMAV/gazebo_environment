@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+    <xacro:macro name="imu" params="name parent_link *origin namespace update_rate:=30">
+        <xacro:include
+            filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
+
+
+
+        <xacro:property name="base_frame" value="${name}_imu_frame" />
+
+        <!-- Base frame -->
+        <joint name="${name}_imu_joint" type="fixed">
+            <parent link="${parent_link}" />
+            <child link="${base_frame}" />
+            <xacro:insert_block name="origin" />
+        </joint>
+
+        <link name="${base_frame}">
+                <xacro:cuboid_inertia mass="1.0" x="0.01" y="0.01" z="0.01" />
+        </link>
+
+
+        <!-- Gazebo links and joints -->
+
+        <gazebo>
+            <plugin filename="ignition-gazebo-imu-system"
+            name="ignition::gazebo::systems::Imu">
+            </plugin>
+        </gazebo>
+
+        <gazebo reference="${name}_imu_frame">
+            <sensor name="imu_sensor" type="imu">
+                <always_on>1</always_on>
+                <update_rate>${update_rate}</update_rate>
+                <visualize>true</visualize>
+                <topic>${namespace}/sensors/${name}/imu</topic>
+            </sensor>
+            <xacro:material_darkgray />
+        </gazebo>
+
+        <gazebo reference="${name}_imu_frame">
+            <preserveFixedJoint>true</preserveFixedJoint>
+        </gazebo>
+
+
+    </xacro:macro>
+</robot>
