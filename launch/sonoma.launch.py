@@ -47,7 +47,7 @@ def generate_launch_description():
     robot_state_publisher_node = decleare_entity(namespace,robot_desc_path)
     xyz = [277.88,-135.2,3.0]
     rpy = [0.0,0.02,-0.66]
-    
+
     gz_spawn_entity = spawn_entity(robot_name,[277.88,-135.2,3.0],[0.0,0.02,-0.66])
 
 
@@ -104,6 +104,7 @@ def generate_launch_description():
     )
     imu_bridge = create_imu_brige(namespace,"middle_imu")
     oakd_camera_bridge = create_camera_brige(namespace,"front_camera")
+    navsat_bridge  = create_navsat_brige(namespace,"navsat")
 
     
 
@@ -119,19 +120,13 @@ def generate_launch_description():
             SetParameter(name="use_sim_time", value=True),
             declare_world_arg,
             gz_sim,
-            # declare_spawn_x,
-            # declare_spawn_y,
-            # declare_spawn_z,
-            # declare_spawn_R,
-            # declare_spawn_P,
-            # declare_spawn_Y,
-
             robot_state_publisher_node,
             gz_spawn_entity,
             ign_bridge,
             # cam_tf_node,
             oakd_camera_bridge,
             imu_bridge,
+            navsat_bridge,
             odometry_tf,
         ]
     )
@@ -205,7 +200,7 @@ def create_camera_brige(namespace,camera_name):
     camera_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
-        name="camera_bridge",
+        name=f"{camera_name}_camera_bridge",
         output="screen",
         parameters=[{"use_sim_time": True}],
         arguments=[
@@ -249,7 +244,7 @@ def create_imu_brige(namespace,imu_name):
     imu_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
-        name="imu_bridge",
+        name=f"{imu_name}_imu_bridge",
         output="screen",
         parameters=[{"use_sim_time": True}],
         arguments=[
@@ -263,3 +258,23 @@ def create_imu_brige(namespace,imu_name):
     )
 
     return imu_bridge
+
+
+def create_navsat_brige(namespace,navsat_name):
+    navsat_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        name=f"{navsat_name}_navsat_bridge",
+        output="screen",
+        parameters=[{"use_sim_time": True}],
+        arguments=[
+            [
+                namespace,
+                f"/sensors/{navsat_name}/navsat"
+                + "@sensor_msgs/msg/NavSatFix"
+                + "[ignition.msgs.NavSat",
+            ],
+        ]
+    )
+
+    return navsat_bridge

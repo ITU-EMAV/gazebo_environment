@@ -4,6 +4,7 @@
 
   <xacro:arg name="namespace" default=""/>
   <xacro:include filename="$(find gazebo_environment)/urdf/imu.urdf.xacro" />
+  <xacro:include filename="$(find gazebo_environment)/urdf/navsat.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/camera.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
   <xacro:property name="camera_x_offset" value="2.0" />
@@ -227,6 +228,26 @@
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
   </xacro:imu>
 
+<!-- NavSat -->
+
+  <xacro:navsat name="navsat" parent_link="link_chassis" namespace="$(arg namespace)">
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  </xacro:navsat>
+  <!-- <gazebo>
+    <plugin
+      filename="ignition-gazebo-navsat-system"
+      name="ignition::gazebo::systems::NavSat">
+    </plugin>
+  </gazebo>
+
+  <gazebo reference="link_chassis">
+    <sensor name="navsat_sensor" type="navsat">
+      <always_on>1</always_on>
+      <update_rate>1</update_rate>
+      <topic>/sensors/navsat</topic>
+    </sensor>
+  </gazebo> -->
+
 
 
   <!-- Ackermann steering plugin -->
@@ -261,20 +282,5 @@
 
  
 
-  <!-- NavSat -->
-  <gazebo>
-    <plugin
-      filename="ignition-gazebo-navsat-system"
-      name="ignition::gazebo::systems::NavSat">
-    </plugin>
-  </gazebo>
-  
-  <gazebo reference="link_chassis">
-    <sensor name="navsat_sensor" type="navsat">
-      <always_on>1</always_on>
-      <update_rate>1</update_rate>
-      <topic>navsat</topic>
-    </sensor>
-  </gazebo>
 
 </robot>

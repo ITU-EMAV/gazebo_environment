@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-    <xacro:macro name="imu" params="name parent_link *origin namespace update_rate:=30">
+    <xacro:macro name="navsat" params="name parent_link *origin namespace update_rate:=1">
         <xacro:include
             filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
 
 
 
-        <xacro:property name="base_frame" value="${name}_imu_frame" />
+        <xacro:property name="base_frame" value="${name}_navsat_frame" />
 
         <!-- Base frame -->
-        <joint name="${name}_imu_joint" type="fixed">
+        <joint name="${name}_navsat_joint" type="fixed">
             <parent link="${parent_link}" />
             <child link="${base_frame}" />
             <xacro:insert_block name="origin" />
@@ -23,20 +23,20 @@
 
         <!-- Gazebo links and joints -->
 
+
         <gazebo>
-            <plugin filename="ignition-gazebo-imu-system"
-            name="ignition::gazebo::systems::Imu">
+            <plugin
+            filename="ignition-gazebo-navsat-system"
+            name="ignition::gazebo::systems::NavSat">
             </plugin>
         </gazebo>
 
         <gazebo reference="${base_frame}">
-            <sensor name="imu_sensor" type="imu">
-                <always_on>1</always_on>
-                <update_rate>${update_rate}</update_rate>
-                <visualize>true</visualize>
-                <topic>${namespace}/sensors/${name}/imu</topic>
+            <sensor name="navsat_sensor" type="navsat">
+            <always_on>1</always_on>
+            <update_rate>${update_rate}</update_rate>
+            <topic>${namespace}/sensors/${name}/navsat</topic>
             </sensor>
-            <xacro:material_darkgray />
         </gazebo>
 
         <gazebo reference="${name}_navsat_joint">
