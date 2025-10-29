@@ -29,7 +29,7 @@
             <visual>
                 <geometry>
                     <mesh
-                        filename="package://gazebo_environment/meshes/oakd_pro.dae"
+                        filename="$(find gazebo_environment)/meshes/oakd_pro.dae"
                         scale="1 1 1" />
                 </geometry>
             </visual>
