@@ -244,6 +244,13 @@
 
 
 
+  <!-- Joint states plugin -->
+  <gazebo>
+    <plugin filename="ignition-gazebo-joint-state-publisher-system"
+      name="ignition::gazebo::systems::JointStatePublisher" />
+  </gazebo>
+
+
   <!-- Ackermann steering plugin -->
   <gazebo>
     <plugin filename="ignition-gazebo-ackermann-steering-system"
@@ -264,15 +271,14 @@
       <max_velocity>100</max_velocity>
       <min_acceleration>-30</min_acceleration>
       <max_acceleration>30</max_acceleration>
+
+      <tf_topic>$(arg namespace)/tf/steering_odom</tf_topic>
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_footprint</child_frame_id>
     </plugin>
   </gazebo>
 
 
-  <!-- Joint states plugin -->
-  <gazebo>
-    <plugin filename="ignition-gazebo-joint-state-publisher-system"
-      name="ignition::gazebo::systems::JointStatePublisher" />
-  </gazebo>
 
  
 

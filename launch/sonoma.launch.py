@@ -44,7 +44,7 @@ def generate_launch_description():
     robot_desc_path = os.path.join(package_directory, "urdf", urdf_file)
 
     robot_state_publisher_node = decleare_entity(robot_name,robot_desc_path)
-    # robot_state_publisher_node2 = decleare_entity("sac2",robot_desc_path)
+
     xyz = [277.88,-135.2,3.0]
     rpy = [0.0,0.02,-0.66]
 
@@ -52,20 +52,15 @@ def generate_launch_description():
     period=1.0,
     actions=[spawn_entity(robot_name,robot_desc_path,[277.88,-135.2,3.0],[0.0,0.02,-0.66])],
     )
-    gz_spawn_entity2 = TimerAction(
-    period=6.0,
-    actions=[spawn_entity("sac_degil",robot_desc_path,[277.88,-135.2,3.0],[0.0,0.02,-0.66])],
-    )
 
-    # gz_spawn_entity = spawn_entity(robot_name,robot_desc_path,[277.88,-135.2,3.0],[0.0,0.02,-0.66])
-    # gz_spawn_entity2 = spawn_entity("robot_name",robot_desc_path,[277.88,-135.2,3.0],[0.0,0.02,-0.66])
+
     ign_bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
         name="ign_bridge",
         arguments=[
             "/clock" + "@rosgraph_msgs/msg/Clock" + "[ignition.msgs.Clock",
-            "/tf" + "@tf2_msgs/msg/TFMessage" + "[ignition.msgs.Pose_V",
+            
             # "/laser/scan" + "@sensor_msgs/msg/LaserScan" + "[ignition.msgs.LaserScan",
 
 
@@ -73,13 +68,13 @@ def generate_launch_description():
             + "@sensor_msgs/msg/JointState"
             + "[ignition.msgs.Model",
 
-            f"/world/{world}/pose/info"
-            + "@geometry_msgs/msg/PoseArray"
-            + "[ignition.msgs.Pose_V",
+            # f"/world/{world}/pose/info"
+            # + "@geometry_msgs/msg/PoseArray"
+            # + "[ignition.msgs.Pose_V",
         ],
         remappings=[
             (f"/world/{world}/model/{robot_name}/joint_state", "/joint_states"),
-            (f"/world/{world}/pose/info", "/pose_info"),
+            # (f"/world/{world}/pose/info", "/pose_info"),
         ],
         output="screen",
     )
@@ -103,19 +98,17 @@ def generate_launch_description():
         [
             SetParameter(name="use_sim_time", value=True),
             declare_world_arg,
-            
             gz_sim,
 
-            # robot_state_publisher_node,
-            # robot_state_publisher_node2,
+            robot_state_publisher_node,
             gz_spawn_entity,
-            # gz_spawn_entity2,
+
             ign_bridge,
             oakd_camera_bridge,
             imu_bridge,
             navsat_bridge,
             ackerman_bridge,
-            odometry_tf,
+            # odometry_tf,
         ]
     )
 def create_world(world_config):
@@ -258,6 +251,7 @@ def create_navsat_brige(name,navsat_name):
                 + "@sensor_msgs/msg/NavSatFix"
                 + "[ignition.msgs.NavSat",
             ],
+
         ]
     )
 
@@ -282,8 +276,15 @@ def create_ackerman_bridge(name):
                 f"/calculations/steering_odom"
                 + "@nav_msgs/msg/Odometry"
                 + "[ignition.msgs.Odometry",
-            ]
-        ]
+            ],
+            [
+                f"{name}/tf/steering_odom"
+                + "@tf2_msgs/msg/TFMessage" 
+                + "[ignition.msgs.Pose_V",
+            ],
+        ],
+        remappings=[(f"{name}/tf/steering_odom","/tf")]
+
     )
 
     return ackerman_bridge

@@ -36,6 +36,7 @@
             <always_on>1</always_on>
             <update_rate>${update_rate}</update_rate>
             <topic>${namespace}/sensors/${name}/navsat</topic>
+            <gz_frame_id>${base_frame}</gz_frame_id> 
             </sensor>
         </gazebo>
 
