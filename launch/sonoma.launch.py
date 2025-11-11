@@ -84,6 +84,7 @@ def generate_launch_description():
     oakd_camera_bridge = create_camera_brige(robot_name,"front_camera")
     navsat_bridge  = create_navsat_brige(robot_name,"navsat")
     ackerman_bridge = create_ackerman_bridge(robot_name)
+    lidar_bridge  = create_lidar_brige(robot_name,"front_3d_lidar")
 
     
 
@@ -108,6 +109,7 @@ def generate_launch_description():
             imu_bridge,
             navsat_bridge,
             ackerman_bridge,
+            lidar_bridge,
             # odometry_tf,
         ]
     )
@@ -288,3 +290,22 @@ def create_ackerman_bridge(name):
     )
 
     return ackerman_bridge
+
+def create_lidar_brige(name,lidar_name):
+    lidar_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        name=f"{lidar_name}_navsat_bridge",
+        output="screen",
+        parameters=[{"use_sim_time": True}],
+        arguments=[
+            [
+                name,
+                f"/sensors/{lidar_name}/points"
+                + "@sensor_msgs/msg/PointCloud2"
+                + "[ignition.msgs.PointCloudPacked",
+            ],
+        ]
+    )
+
+    return lidar_bridge

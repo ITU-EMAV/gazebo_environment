@@ -6,10 +6,8 @@
   <xacro:include filename="$(find gazebo_environment)/urdf/imu.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/navsat.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/camera.urdf.xacro" />
+  <xacro:include filename="$(find gazebo_environment)/urdf/lidar3d.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
-  <xacro:property name="camera_x_offset" value="2.0" />
-  <xacro:property name="camera_y_offset" value="0.0" />
-  <xacro:property name="camera_z_offset" value="3.0" />
   
   <link name="base_footprint">
       
@@ -229,7 +227,7 @@
 
 <!-- Camera Plugin -->
   <xacro:camera name="front_camera" parent_link="link_chassis" namespace="$(arg namespace)">
-    <origin xyz="${camera_x_offset} ${camera_y_offset} ${camera_z_offset}" rpy="0.0 0.9 0.0" />
+    <origin xyz="2 0 3" rpy="0.0 0.9 0.0" />
   </xacro:camera>
 
 <!-- IMU Plugin -->
@@ -237,10 +235,15 @@
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
   </xacro:imu>
 
-<!-- NavSat -->
+<!-- NavSat Plugin -->
   <xacro:navsat name="navsat" parent_link="link_chassis" namespace="$(arg namespace)">
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
   </xacro:navsat>
+
+<!-- 3D Lidar Plugin -->
+  <xacro:lidar3d name="front_3d_lidar" parent_link="link_chassis" namespace="$(arg namespace)">
+    <origin xyz="-0.3 0.0 1.6" rpy="0 0 0" />
+  </xacro:lidar3d>
 
 
 
