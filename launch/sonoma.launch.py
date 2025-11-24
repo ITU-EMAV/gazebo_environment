@@ -48,10 +48,8 @@ def generate_launch_description():
     xyz = [277.88,-135.2,3.0]
     rpy = [0.0,0.02,-0.66]
 
-    gz_spawn_entity = TimerAction(
-    period=1.0,
-    actions=[spawn_entity(robot_name,robot_desc_path,[277.88,-135.2,3.0],[0.0,0.02,-0.66])],
-    )
+    gz_spawn_entity = spawn_entity(robot_name,robot_desc_path,xyz,rpy)
+    
 
 
     ign_bridge = Node(
@@ -152,22 +150,23 @@ def spawn_entity(name,robot_desc_path,xyz,rpy):
         'xacro ', robot_desc_path, 
         ' namespace:=' , name
     ])
+
+
     gz_spawn_entity = Node(
         package="ros_gz_sim",
         executable="create",
         name=f"{name}_spawn_entity",
-        parameters=[{
-            'string': robot_description,
-            'name': name,
-            'topic': "",
-            'allow_renaming': True,
-            'x': xyz[0],
-            'y': xyz[1],
-            'z': xyz[2],
-            'R': rpy[0],
-            'P': rpy[1],
-            'Y': rpy[2],
-            }],
+        arguments=[
+            "-stdin", robot_description,
+            "-string", robot_description, #For new verrsion of gazebo
+            "-name", name,
+            "-x", str(xyz[0]),
+            "-y", str(xyz[1]),
+            "-z", str(xyz[2]),
+            "-R", str(rpy[0]),
+            "-P", str(rpy[1]),
+            "-Y", str(rpy[2])
+        ],
         output="screen",
     )
 

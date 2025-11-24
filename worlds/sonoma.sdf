@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<sdf version="1.10">
+<sdf version="1.9">
 
   <world name="sonoma">
     <!-- Include the Sonoma Raceway environment -->
@@ -13,13 +13,6 @@
       <ambient>1.0 1.0 1.0</ambient>
       <background>0.678 0.847 0.902</background>
     </scene>
-
-    <!-- GUI and camera placement -->
-    <!-- <gui>
-      <camera name="default_camera">
-        <pose>277.88 -135.2 6.0 0.0 0.0 0.0</pose>
-      </camera>
-    </gui> -->
 
     <!-- Directional sunlight -->
     <light type="directional" name="sun">
