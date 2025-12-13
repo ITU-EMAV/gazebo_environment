@@ -29,7 +29,7 @@ class TfPublisherNode(Node):
         transform = TransformStamped()
         transform.header.stamp = self.get_clock().now().to_msg()
         transform.header.frame_id = "world"
-        transform.child_frame_id = "base_link"
+        transform.child_frame_id = "base_footprint"
         transform.transform.translation.x = pose.position.x
         transform.transform.translation.y = pose.position.y
         transform.transform.translation.z = pose.position.z

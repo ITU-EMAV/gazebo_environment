@@ -66,13 +66,13 @@ def generate_launch_description():
             + "@sensor_msgs/msg/JointState"
             + "[ignition.msgs.Model",
 
-            # f"/world/{world}/pose/info"
-            # + "@geometry_msgs/msg/PoseArray"
-            # + "[ignition.msgs.Pose_V",
+            f"/world/{world}/pose/info"
+            + "@geometry_msgs/msg/PoseArray"
+            + "[ignition.msgs.Pose_V",
         ],
         remappings=[
             (f"/world/{world}/model/{robot_name}/joint_state", "/joint_states"),
-            # (f"/world/{world}/pose/info", "/pose_info"),
+            (f"/world/{world}/pose/info", "/pose_info"),
         ],
         output="screen",
     )
@@ -108,7 +108,7 @@ def generate_launch_description():
             navsat_bridge,
             ackerman_bridge,
             lidar_bridge,
-            # odometry_tf,
+            odometry_tf,
         ]
     )
 def create_world(world_config):
@@ -278,13 +278,13 @@ def create_ackerman_bridge(name):
                 + "@nav_msgs/msg/Odometry"
                 + "[ignition.msgs.Odometry",
             ],
-            [
-                f"{name}/tf/steering_odom"
-                + "@tf2_msgs/msg/TFMessage" 
-                + "[ignition.msgs.Pose_V",
-            ],
+            # [
+            #     f"{name}/tf/steering_odom"
+            #     + "@tf2_msgs/msg/TFMessage" 
+            #     + "[ignition.msgs.Pose_V",
+            # ],
         ],
-        remappings=[(f"{name}/tf/steering_odom","/tf")]
+        # remappings=[(f"{name}/tf/steering_odom","/tf")]
 
     )
 
