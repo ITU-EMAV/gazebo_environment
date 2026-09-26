@@ -1,7 +1,7 @@
 import os
 from ament_index_python.packages import get_package_prefix, get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, TimerAction
+from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription, SetEnvironmentVariable, TimerAction
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, Command
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node, SetParameter
@@ -118,13 +118,35 @@ def generate_launch_description():
     )
 def create_world(world_config):
     gzsim_pkg = get_package_share_directory("ros_gz_sim")
-    gz_sim = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            PathJoinSubstitution([gzsim_pkg, "launch", "gz_sim.launch.py"])
-        ),
-        launch_arguments={"gz_args": world_config}.items(),
+    gz_sim_launch = PythonLaunchDescriptionSource(
+        PathJoinSubstitution([gzsim_pkg, "launch", "gz_sim.launch.py"])
     )
-    return gz_sim
+
+    if os.environ.get("GALLIUM_DRIVER") != "d3d12":
+        return IncludeLaunchDescription(
+            gz_sim_launch,
+            launch_arguments={"gz_args": world_config}.items(),
+        )
+
+    # Windows GPU (Mesa d3d12, see scripts/entrypoint.sh in Docker-Workspaces):
+    # the GUI aborts at random with "Out of GPU memory or driver refused" when it
+    # renders on d3d12, while the server's sensors render there reliably. Run the
+    # server on the GPU and the GUI in software.
+    server = IncludeLaunchDescription(
+        gz_sim_launch,
+        launch_arguments={"gz_args": ["-s ", world_config]}.items(),
+    )
+    gui = GroupAction(
+        [
+            SetEnvironmentVariable("GALLIUM_DRIVER", "llvmpipe"),
+            IncludeLaunchDescription(
+                gz_sim_launch,
+                launch_arguments={"gz_args": "-g"}.items(),
+            ),
+        ],
+        scoped=True,
+    )
+    return GroupAction([server, gui])
 
 def decleare_entity(name, robot_desc_path):
     
