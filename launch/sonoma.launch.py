@@ -69,6 +69,10 @@ def generate_launch_description():
             f"/world/{world}/pose/info"
             + "@geometry_msgs/msg/PoseArray"
             + "[ignition.msgs.Pose_V",
+
+            f"{robot_name}/ground_truth/pose"
+            + "@geometry_msgs/msg/PoseStamped"
+            + "[ignition.msgs.Pose",
         ],
         remappings=[
             (f"/world/{world}/model/{robot_name}/joint_state", "/joint_states"),
@@ -91,6 +95,7 @@ def generate_launch_description():
         executable="odometry_tf",
         name="odometry_tf",
         output="screen",
+        parameters=[{"pose_topic": f"/{robot_name}/ground_truth/pose"}],
     )
 
     return LaunchDescription(

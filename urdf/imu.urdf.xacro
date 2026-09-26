@@ -35,11 +35,12 @@
                 <update_rate>${update_rate}</update_rate>
                 <visualize>true</visualize>
                 <topic>${namespace}/sensors/${name}/imu</topic>
+                <gz_frame_id>${base_frame}</gz_frame_id>
             </sensor>
             <xacro:material_darkgray />
         </gazebo>
 
-        <gazebo reference="${name}_navsat_joint">
+        <gazebo reference="${name}_imu_joint">
             <preserveFixedJoint>true</preserveFixedJoint>
         </gazebo>
 
