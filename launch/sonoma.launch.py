@@ -3,6 +3,7 @@ from ament_index_python.packages import get_package_prefix, get_package_share_di
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription, SetEnvironmentVariable, TimerAction
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, Command
+from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node, SetParameter
 
@@ -17,12 +18,15 @@ def generate_launch_description():
     robot_meshes_path = os.path.join(package_directory, "meshes")
     
     gazebo_resource_paths = [install_dir_path, robot_meshes_path]
-    if "IGN_GAZEBO_RESOURCE_PATH" in os.environ:
-        for resource_path in gazebo_resource_paths:
-            if resource_path not in os.environ["IGN_GAZEBO_RESOURCE_PATH"]:
-                os.environ["IGN_GAZEBO_RESOURCE_PATH"] += ":" + resource_path
-    else:
-        os.environ["IGN_GAZEBO_RESOURCE_PATH"] = ":".join(gazebo_resource_paths)
+    # Gazebo Harmonic reads GZ_SIM_RESOURCE_PATH; IGN_GAZEBO_RESOURCE_PATH is kept for
+    # older versions. They resolve package://gazebo_environment/... in the URDF.
+    for variable in ("GZ_SIM_RESOURCE_PATH", "IGN_GAZEBO_RESOURCE_PATH"):
+        if variable in os.environ:
+            for resource_path in gazebo_resource_paths:
+                if resource_path not in os.environ[variable]:
+                    os.environ[variable] += ":" + resource_path
+        else:
+            os.environ[variable] = ":".join(gazebo_resource_paths)
 
     # Load Demo World SDF from Robot Description Package
     world = "sonoma"
@@ -35,8 +39,15 @@ def generate_launch_description():
         "world", default_value=["-r ", world_file_path], description="SDF World File"
     )
 
+    # gui:=false runs only the Gazebo server with headless rendering (no window, no
+    # display needed); the sensors are still rendered.
+    gui_config = LaunchConfiguration("gui")
+    declare_gui_arg = DeclareLaunchArgument(
+        "gui", default_value="true", description="Open the Gazebo GUI"
+    )
+
     # Declare Gazebo Sim Launch file
-    gz_sim = create_world(world_config)
+    gz_sim = create_world(world_config, gui_config)
     
 
     # Load the urdf
@@ -102,6 +113,7 @@ def generate_launch_description():
         [
             SetParameter(name="use_sim_time", value=True),
             declare_world_arg,
+            declare_gui_arg,
             gz_sim,
 
             robot_state_publisher_node,
@@ -116,17 +128,25 @@ def generate_launch_description():
             odometry_tf,
         ]
     )
-def create_world(world_config):
+def create_world(world_config, gui_config):
     gzsim_pkg = get_package_share_directory("ros_gz_sim")
     gz_sim_launch = PythonLaunchDescriptionSource(
         PathJoinSubstitution([gzsim_pkg, "launch", "gz_sim.launch.py"])
     )
 
+    headless = IncludeLaunchDescription(
+        gz_sim_launch,
+        launch_arguments={"gz_args": ["-s --headless-rendering ", world_config]}.items(),
+        condition=UnlessCondition(gui_config),
+    )
+
     if os.environ.get("GALLIUM_DRIVER") != "d3d12":
-        return IncludeLaunchDescription(
+        with_gui = IncludeLaunchDescription(
             gz_sim_launch,
             launch_arguments={"gz_args": world_config}.items(),
+            condition=IfCondition(gui_config),
         )
+        return GroupAction([headless, with_gui])
 
     # Windows GPU (Mesa d3d12, see scripts/entrypoint.sh in Docker-Workspaces):
     # the GUI aborts at random with "Out of GPU memory or driver refused" when it
@@ -146,7 +166,7 @@ def create_world(world_config):
         ],
         scoped=True,
     )
-    return GroupAction([server, gui])
+    return GroupAction([headless, GroupAction([server, gui], condition=IfCondition(gui_config))])
 
 def decleare_entity(name, robot_desc_path):
     

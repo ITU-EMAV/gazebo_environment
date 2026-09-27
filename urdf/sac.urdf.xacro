@@ -34,7 +34,7 @@
     <visual name="chassis_visual">
       <origin rpy="1.57 0 1.57" xyz="0 0 0" />
       <geometry>
-        <mesh filename="$(find gazebo_environment)/meshes/smart_car.obj"
+        <mesh filename="package://gazebo_environment/meshes/smart_car.obj"
           scale="0.012 0.012
         0.013" />
       </geometry>
@@ -211,7 +211,8 @@
   </xacro:imu>
 
 <!-- NavSat Plugin -->
-  <xacro:navsat name="navsat" parent_link="link_chassis" namespace="$(arg namespace)">
+  <!-- 10 Hz like a typical GNSS receiver; at 1 Hz a map view barely moves -->
+  <xacro:navsat name="navsat" parent_link="link_chassis" namespace="$(arg namespace)" update_rate="10">
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
   </xacro:navsat>
 

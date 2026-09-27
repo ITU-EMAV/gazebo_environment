@@ -32,11 +32,13 @@
     <spherical_coordinates>
       <surface_model>EARTH_WGS84</surface_model>
       <world_frame_orientation>ENU</world_frame_orientation>
-      <!-- Buraya istediğin başlangıç konumunu yaz -->
-      <latitude_deg>41.015137</latitude_deg>    <!-- Örnek: İstanbul -->
-      <longitude_deg>28.979530</longitude_deg>
-      <elevation>100.0</elevation>             <!-- metre -->
-      <heading_deg>0.0</heading_deg>
+      <!-- Real location of the Sonoma Raceway model's origin, found by fitting the
+           model's track surface to the OpenStreetMap raceway ways (median error ~5 m,
+           about half the track width). GPS (navsat) readings then line up with maps. -->
+      <latitude_deg>38.1628083</latitude_deg>
+      <longitude_deg>-122.4579944</longitude_deg>
+      <elevation>0.0</elevation>
+      <heading_deg>0.83</heading_deg>
     </spherical_coordinates>
 
   </world>
