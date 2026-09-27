@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <!--
   SAC: a Mercedes smart fortwo sized car (rear-wheel drive, Ackermann steering) with a
-  ZED 2 stereo camera, a Velodyne VLP-16 lidar, an IMU and a GNSS receiver, for Gazebo
-  Harmonic.
+  ZED 2 stereo camera, a Velodyne VLP-16 lidar, three IMUs and a GNSS receiver, for
+  Gazebo Harmonic.
 
   All dimensions and limits are properties below, so the model can be matched to the real
   car in one place. Values marked "not measured" come from the smart fortwo (W453)
@@ -62,7 +62,7 @@
   <xacro:property name="rack_mid_x" value="${(rack_front_x + rack_rear_x) / 2}" />
 
   <!-- Sensor mounts. The camera, lidar and GNSS antennas are on the roof rack and given
-       relative to its frame (middle of the rack, top of the profiles); the IMU is on the
+       relative to its frame (middle of the rack, top of the profiles); the IMUs are on the
        chassis, relative to base_footprint. -->
   <xacro:property name="rack_front" value="${rack_front_x - rack_mid_x}" />  <!-- front bar, in the rack frame -->
   <!-- ZED 2 on a 10 cm ball head in the middle of the front bar, level -->
