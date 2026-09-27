@@ -28,9 +28,9 @@ ros2 topic pub -r 10 /sac/actuators/cmd_vel geometry_msgs/msg/Twist "{linear: {x
 | `/sac/sensors/front_camera/camera_info` | `sensor_msgs/CameraInfo` | |
 | `/sac/sensors/front_camera/points` | `sensor_msgs/PointCloud2` | from the depth image (`depth_image_proc`) |
 | `/sac/sensors/front_camera/imu` | `sensor_msgs/Imu` | ZED 2 IMU (`front_camera_imu_link`) |
-| `/sac/sensors/middle_imu/imu` | `sensor_msgs/Imu` | IMU in the middle of the car (`middle_imu_imu_frame`) |
-| `/sac/sensors/front_imu/imu` | `sensor_msgs/Imu` | IMU over the front axle (`front_imu_imu_frame`) |
-| `/sac/sensors/back_imu/imu` | `sensor_msgs/Imu` | IMU over the rear axle (`back_imu_imu_frame`) |
+| `/sac/sensors/middle_imu/imu` | `sensor_msgs/Imu` | IMU in the middle of the car (`middle_imu_frame`) |
+| `/sac/sensors/front_imu/imu` | `sensor_msgs/Imu` | IMU over the front axle (`front_imu_frame`) |
+| `/sac/sensors/back_imu/imu` | `sensor_msgs/Imu` | IMU over the rear axle (`back_imu_frame`) |
 | `/sac/sensors/navsat/navsat` | `sensor_msgs/NavSatFix` | real Sonoma coordinates |
 | `/sac/sensors/roof_lidar/points` | `sensor_msgs/PointCloud2` | VLP-16 returns only (like the Velodyne driver), up to 16 x 1800 points at 10 Hz |
 | `/sac/calculations/steering_odom` | `nav_msgs/Odometry` | wheel odometry from the steering plugin |
@@ -100,8 +100,8 @@ drivers to them, so the same code runs on both.
 |---|---|---|
 | ZED 2 (ZED ROS 2 wrapper, camera name `front_camera`) | `/sac/sensors/front_camera/image`, `.../depth_image`, `.../camera_info`, `.../points`, `.../imu` | `front_camera_left_camera_optical_frame`; IMU `front_camera_imu_link` |
 | VLP-16 (velodyne driver) | `/sac/sensors/roof_lidar/points` | `roof_lidar_frame` |
-| GNSS receiver | `/sac/sensors/navsat/navsat` | `navsat_navsat_frame` |
-| IMUs | `/sac/sensors/middle_imu/imu`, `/sac/sensors/front_imu/imu`, `/sac/sensors/back_imu/imu` | `middle_imu_imu_frame`, `front_imu_imu_frame`, `back_imu_imu_frame` |
+| GNSS receiver | `/sac/sensors/navsat/navsat` | `navsat_frame` |
+| IMUs | `/sac/sensors/middle_imu/imu`, `/sac/sensors/front_imu/imu`, `/sac/sensors/back_imu/imu` | `middle_imu_frame`, `front_imu_frame`, `back_imu_frame` |
 | Drive | `/sac/actuators/cmd_vel` (`geometry_msgs/Twist`) | |
 
 On the real car, `robot_state_publisher` with this package's URDF provides the sensor frames.

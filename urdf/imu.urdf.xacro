@@ -22,10 +22,10 @@
     </xacro:macro>
 
     <xacro:macro name="imu" params="name parent_link *origin namespace update_rate:=100 frame:=''">
-        <!-- Frame name: <name>_imu_frame unless given -->
-        <xacro:property name="base_frame" value="${frame if frame else name + '_imu_frame'}" />
+        <!-- Frame name: <name>_frame unless given -->
+        <xacro:property name="base_frame" value="${frame if frame else name + '_frame'}" />
 
-        <joint name="${name}_imu_joint" type="fixed">
+        <joint name="${base_frame}_joint" type="fixed">
             <parent link="${parent_link}" />
             <child link="${base_frame}" />
             <xacro:insert_block name="origin" />
@@ -57,7 +57,7 @@
         </gazebo>
 
         <!-- Keep the frame as its own link in Gazebo so the sensor reports in it -->
-        <gazebo reference="${name}_imu_joint">
+        <gazebo reference="${base_frame}_joint">
             <preserveFixedJoint>true</preserveFixedJoint>
         </gazebo>
     </xacro:macro>

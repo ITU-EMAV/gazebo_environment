@@ -18,9 +18,9 @@
     </xacro:macro>
 
     <xacro:macro name="navsat" params="name parent_link *origin namespace update_rate:=10">
-        <xacro:property name="base_frame" value="${name}_navsat_frame" />
+        <xacro:property name="base_frame" value="${name}_frame" />
 
-        <joint name="${name}_navsat_joint" type="fixed">
+        <joint name="${name}_joint" type="fixed">
             <parent link="${parent_link}" />
             <child link="${base_frame}" />
             <xacro:insert_block name="origin" />
@@ -57,7 +57,7 @@
             </sensor>
         </gazebo>
 
-        <gazebo reference="${name}_navsat_joint">
+        <gazebo reference="${name}_joint">
             <preserveFixedJoint>true</preserveFixedJoint>
         </gazebo>
     </xacro:macro>
