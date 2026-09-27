@@ -1,51 +1,59 @@
+"""Ground truth TF from Gazebo, in the REP 105 layout: map -> odom -> base_footprint.
+
+map -> odom is a fixed identity and odom -> base_footprint is the car's exact pose from
+Gazebo's PosePublisher, so odometry does not drift. Launch with ground_truth_tf:=false when
+a localization (for example robot_localization's EKF) publishes these transforms instead;
+both at once would give base_footprint two parents.
+
+The map frame is Gazebo's world frame, whose origin the world file places at the real
+Sonoma Raceway (<spherical_coordinates>).
+"""
+
 import rclpy
+from geometry_msgs.msg import PoseStamped, TransformStamped
 from rclpy.node import Node
-from geometry_msgs.msg import PoseStamped
-from tf2_ros import TransformBroadcaster
-from geometry_msgs.msg import TransformStamped
+from tf2_ros import StaticTransformBroadcaster, TransformBroadcaster
 
 
-class TfPublisherNode(Node):
-
+class GroundTruthTf(Node):
     def __init__(self):
-        super().__init__("tf_publisher_node")
-        # Ground truth model pose from Gazebo's PosePublisher system
+        super().__init__("odometry_tf")
         pose_topic = self.declare_parameter("pose_topic", "/sac/ground_truth/pose").value
-        self.world_frame = self.declare_parameter("world_frame", "world").value
+        self.map_frame = self.declare_parameter("map_frame", "map").value
+        self.odom_frame = self.declare_parameter("odom_frame", "odom").value
         self.robot_frame = self.declare_parameter("robot_frame", "base_footprint").value
-        self.pose_subscription = self.create_subscription(
-            PoseStamped, pose_topic, self.pose_callback, 10  # Adjust QoS as needed
-        )
+
+        identity = TransformStamped()
+        identity.header.stamp = self.get_clock().now().to_msg()
+        identity.header.frame_id = self.map_frame
+        identity.child_frame_id = self.odom_frame
+        identity.transform.rotation.w = 1.0
+        self.static_broadcaster = StaticTransformBroadcaster(self)
+        self.static_broadcaster.sendTransform(identity)
+
         self.tf_broadcaster = TransformBroadcaster(self)
-        self.get_logger().info(f"Tf publisher node started, listening on {pose_topic}.")
+        self.create_subscription(PoseStamped, pose_topic, self.pose_callback, 10)
+        self.get_logger().info(
+            f"Publishing {self.map_frame} -> {self.odom_frame} -> {self.robot_frame} "
+            f"from {pose_topic}."
+        )
 
     def pose_callback(self, msg):
-        pose = msg.pose
-
-        # Create a TransformStamped message
         transform = TransformStamped()
         # Simulation time at which Gazebo measured the pose
         transform.header.stamp = msg.header.stamp
-        transform.header.frame_id = self.world_frame
+        transform.header.frame_id = self.odom_frame
         transform.child_frame_id = self.robot_frame
-        transform.transform.translation.x = pose.position.x
-        transform.transform.translation.y = pose.position.y
-        transform.transform.translation.z = pose.position.z
-        transform.transform.rotation.w = pose.orientation.w
-        transform.transform.rotation.x = pose.orientation.x
-        transform.transform.rotation.y = pose.orientation.y
-        transform.transform.rotation.z = pose.orientation.z
-
-        # Publish the transform
+        transform.transform.translation.x = msg.pose.position.x
+        transform.transform.translation.y = msg.pose.position.y
+        transform.transform.translation.z = msg.pose.position.z
+        transform.transform.rotation = msg.pose.orientation
         self.tf_broadcaster.sendTransform(transform)
-        self.get_logger().debug(
-            f"Published TF from {self.world_frame} to {self.robot_frame}."
-        )
 
 
 def main():
     rclpy.init()
-    node = TfPublisherNode()
+    node = GroundTruthTf()
     rclpy.spin(node)
     rclpy.shutdown()
 

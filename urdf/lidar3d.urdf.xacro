@@ -15,9 +15,9 @@
     <xacro:property name="lidar_noise" value="0.015" />
 
     <xacro:macro name="lidar3d" params="name parent_link *origin namespace update_rate:=10">
-        <xacro:property name="base_frame" value="${name}_lidar_frame" />
+        <xacro:property name="base_frame" value="${name}_frame" />
 
-        <joint name="${name}_lidar_joint" type="fixed">
+        <joint name="${name}_joint" type="fixed">
             <parent link="${parent_link}" />
             <child link="${base_frame}" />
             <xacro:insert_block name="origin" />
@@ -35,7 +35,7 @@
         </link>
 
         <gazebo reference="${base_frame}">
-            <sensor name="${name}_lidar_sensor" type="gpu_lidar">
+            <sensor name="${name}_sensor" type="gpu_lidar">
                 <always_on>true</always_on>
                 <update_rate>${update_rate}</update_rate>
                 <gz_frame_id>${base_frame}</gz_frame_id>
@@ -67,7 +67,7 @@
             </sensor>
         </gazebo>
 
-        <gazebo reference="${name}_lidar_joint">
+        <gazebo reference="${name}_joint">
             <preserveFixedJoint>true</preserveFixedJoint>
         </gazebo>
     </xacro:macro>

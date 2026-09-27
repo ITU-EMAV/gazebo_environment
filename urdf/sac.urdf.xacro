@@ -224,7 +224,7 @@
     <origin xyz="${gnss_xyz}" rpy="0 0 0" />
   </xacro:navsat>
 
-  <xacro:lidar3d name="front_3d_lidar" parent_link="roof_rack" namespace="$(arg namespace)">
+  <xacro:lidar3d name="roof_lidar" parent_link="roof_rack" namespace="$(arg namespace)">
     <origin xyz="${lidar_xyz}" rpy="0 0 0" />
   </xacro:lidar3d>
 
@@ -267,7 +267,8 @@
       <odom_publish_frequency>10</odom_publish_frequency>
       <odom_topic>$(arg namespace)/calculations/steering_odom</odom_topic>
       <tf_topic>$(arg namespace)/tf/steering_odom</tf_topic>
-      <frame_id>steering_odom</frame_id>
+      <!-- Wheel odometry in the odom frame (REP 105), ready for an EKF -->
+      <frame_id>odom</frame_id>
       <child_frame_id>base_footprint</child_frame_id>
     </plugin>
   </gazebo>

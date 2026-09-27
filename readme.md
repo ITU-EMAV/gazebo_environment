@@ -32,14 +32,23 @@ ros2 topic pub -r 10 /sac/actuators/cmd_vel geometry_msgs/msg/Twist "{linear: {x
 | `/sac/sensors/front_imu/imu` | `sensor_msgs/Imu` | IMU over the front axle (`front_imu_imu_frame`) |
 | `/sac/sensors/back_imu/imu` | `sensor_msgs/Imu` | IMU over the rear axle (`back_imu_imu_frame`) |
 | `/sac/sensors/navsat/navsat` | `sensor_msgs/NavSatFix` | real Sonoma coordinates |
-| `/sac/sensors/front_3d_lidar/points` | `sensor_msgs/PointCloud2` | VLP-16 returns only (like the Velodyne driver), up to 16 x 1800 points at 10 Hz |
+| `/sac/sensors/roof_lidar/points` | `sensor_msgs/PointCloud2` | VLP-16 returns only (like the Velodyne driver), up to 16 x 1800 points at 10 Hz |
 | `/sac/calculations/steering_odom` | `nav_msgs/Odometry` | wheel odometry from the steering plugin |
 | `/sac/ground_truth/pose` | `geometry_msgs/PoseStamped` | exact pose from Gazebo |
-| `/joint_states`, `/tf`, `/tf_static`, `/clock` | | `world -> base_footprint` comes from the ground truth |
+| `/joint_states`, `/tf`, `/tf_static`, `/clock` | | see TF below |
 | `/environment/track` | `visualization_msgs/Marker` | track model for Foxglove/Lichtblick/RViz |
 
 Sensor topics are bridged lazily (`config/bridge.yaml`): a sensor is only simulated while
 something subscribes to it.
+
+## TF
+REP 105 layout: `map -> odom -> base_footprint -> link_chassis -> sensors`.
+- `map` is Gazebo's world frame, placed at the real Sonoma Raceway.
+- By default `odometry_tf` publishes `map -> odom` as identity and `odom -> base_footprint`
+  from Gazebo's exact pose (no drift). Launch with `ground_truth_tf:=false` when a
+  localization (e.g. robot_localization's EKF) publishes them instead.
+- `/sac/calculations/steering_odom` is wheel odometry in `odom`, for such an EKF.
+- The camera, lidar and GNSS hang off `roof_rack`, the IMUs off `link_chassis`.
 
 ## Files
 | Path | Content |
@@ -51,7 +60,7 @@ something subscribes to it.
 | `launch/sonoma.launch.py` | simulation |
 | `launch/rviz.launch.py` | the model in RViz with joint sliders, no simulation |
 | `config/bridge.yaml` | Gazebo <-> ROS topics |
-| `gazebo_environment/odometry_tf.py` | publishes `world -> base_footprint` |
+| `gazebo_environment/odometry_tf.py` | publishes `map -> odom -> base_footprint` from the ground truth |
 | `gazebo_environment/lidar_filter.py` | drops the lidar rays without a return (Gazebo gives them inf coordinates) |
 | `gazebo_environment/track_visual.py` | converts the Sonoma model to GLB once and publishes it (needs `trimesh`) |
 
@@ -77,7 +86,7 @@ on the real car; they are properties at the top of each URDF file.
 | GNSS | 10 Hz, standalone receiver error: 1 m horizontal, 1.5 m vertical |
 
 Not like the real car:
-- `/sac/ground_truth/pose` and the `world -> base_footprint` TF are exact (Gazebo's pose).
+- `/sac/ground_truth/pose` and the default `odom -> base_footprint` TF are exact (Gazebo's pose).
 - Braking only uses the driven (rear) wheels, a limit of Gazebo's Ackermann plugin: about
   5 m/s^2 instead of the 7 m/s^2 set.
 - The depth image has no noise (Gazebo's RGB-D camera does not model it); a real ZED 2's depth
@@ -90,7 +99,7 @@ drivers to them, so the same code runs on both.
 | Sensor | Topic(s) | frame_id |
 |---|---|---|
 | ZED 2 (ZED ROS 2 wrapper, camera name `front_camera`) | `/sac/sensors/front_camera/image`, `.../depth_image`, `.../camera_info`, `.../points`, `.../imu` | `front_camera_left_camera_optical_frame`; IMU `front_camera_imu_link` |
-| VLP-16 (velodyne driver) | `/sac/sensors/front_3d_lidar/points` | `front_3d_lidar_lidar_frame` |
+| VLP-16 (velodyne driver) | `/sac/sensors/roof_lidar/points` | `roof_lidar_frame` |
 | GNSS receiver | `/sac/sensors/navsat/navsat` | `navsat_navsat_frame` |
 | IMUs | `/sac/sensors/middle_imu/imu`, `/sac/sensors/front_imu/imu`, `/sac/sensors/back_imu/imu` | `middle_imu_imu_frame`, `front_imu_imu_frame`, `back_imu_imu_frame` |
 | Drive | `/sac/actuators/cmd_vel` (`geometry_msgs/Twist`) | |

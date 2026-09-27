@@ -3,7 +3,7 @@
 Gazebo downloads the model from Fuel as an OBJ with textures in a separate MTL file,
 which web viewers cannot show with its materials. The first time, this node converts
 it to a single GLB (textures embedded, metres, glTF's Y-up axes) next to the Gazebo
-cache, then publishes a latched MESH_RESOURCE marker in the world frame as a
+cache, then publishes a latched MESH_RESOURCE marker in the map frame as a
 package:// URL (see mesh_resource_url).
 """
 
@@ -87,7 +87,7 @@ class TrackVisual(Node):
                 "glb_path", f"~/.gz/gazebo_environment/sonoma_raceway_v{CONVERTER_VERSION}.glb"
             ).value
         )
-        self.frame_id = self.declare_parameter("frame_id", "world").value
+        self.frame_id = self.declare_parameter("frame_id", "map").value
         topic = self.declare_parameter("topic", "/environment/track").value
 
         latched = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)

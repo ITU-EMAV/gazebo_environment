@@ -3,6 +3,9 @@ the world -> base_footprint TF and the track model for web viewers.
 
 Arguments:
   gui:=false         only the Gazebo server with headless rendering (no window)
+  ground_truth_tf:=false
+                     do not publish map -> odom -> base_footprint from Gazebo's exact pose,
+                     for when a localization (e.g. robot_localization) publishes them
   world:=<args>      Gazebo arguments, default "-r <share>/worlds/sonoma.sdf"
   x, y, z, yaw       where the car starts (default: the start/finish line)
 """
@@ -42,6 +45,11 @@ def generate_launch_description():
         ),
         # Headless still renders the sensors, it only skips the window
         DeclareLaunchArgument("gui", default_value="true", description="Open the Gazebo window"),
+        DeclareLaunchArgument(
+            "ground_truth_tf",
+            default_value="true",
+            description="Publish map -> odom -> base_footprint from Gazebo's exact pose",
+        ),
     ] + [
         DeclareLaunchArgument(name, default_value=value, description=f"Start pose: {name}")
         for name, value in START_POSE.items()
@@ -86,14 +94,15 @@ def generate_launch_description():
         parameters=[{"config_file": os.path.join(package_directory, "config", "bridge.yaml")}],
     )
 
-    # world -> base_footprint from Gazebo's ground truth pose; stamps come from the
-    # pose message itself, so it does not need /clock either
+    # map -> odom -> base_footprint from Gazebo's exact pose (REP 105); stamps come from
+    # the pose message itself, so it does not need /clock either
     odometry_tf = Node(
         package=PACKAGE,
         executable="odometry_tf",
         name="odometry_tf",
         output="screen",
         parameters=[{"pose_topic": f"/{ROBOT_NAME}/ground_truth/pose"}],
+        condition=IfCondition(LaunchConfiguration("ground_truth_tf")),
     )
 
     # Camera point cloud from the depth image, in the optical frame like the real camera's
@@ -115,12 +124,12 @@ def generate_launch_description():
     lidar_filter = Node(
         package=PACKAGE,
         executable="lidar_filter",
-        name="front_3d_lidar_filter",
+        name="roof_lidar_filter",
         output="screen",
         parameters=[
             {
-                "input": f"/{ROBOT_NAME}/sensors/front_3d_lidar/points_raw",
-                "output": f"/{ROBOT_NAME}/sensors/front_3d_lidar/points",
+                "input": f"/{ROBOT_NAME}/sensors/roof_lidar/points_raw",
+                "output": f"/{ROBOT_NAME}/sensors/roof_lidar/points",
             }
         ],
     )
