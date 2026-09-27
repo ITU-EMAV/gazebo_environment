@@ -57,7 +57,7 @@ def generate_launch_description():
 
     # value_type=str: otherwise the URDF text is parsed as YAML, and a ":" in it breaks that
     robot_description = ParameterValue(
-        Command(["xacro ", os.path.join(package_directory, "urdf", "sac.urdf.xacro"), f" namespace:={ROBOT_NAME}"]),
+        Command(["xacro ", os.path.join(package_directory, "urdf", "sac.gazebo.xacro"), f" namespace:={ROBOT_NAME}"]),
         value_type=str,
     )
     robot_state_publisher = Node(
@@ -163,12 +163,12 @@ def generate_launch_description():
 
 
 def set_resource_path():
-    """Let Gazebo resolve package://gazebo_environment/... from the URDF.
+    """Let Gazebo resolve package://sac_description/... (the car's meshes) from the URDF.
 
     Gazebo Harmonic reads GZ_SIM_RESOURCE_PATH; IGN_GAZEBO_RESOURCE_PATH is for older
     versions.
     """
-    paths = [os.path.join(get_package_prefix(PACKAGE), "share")]
+    paths = [os.path.join(get_package_prefix(p), "share") for p in (PACKAGE, "sac_description")]
     for variable in ("GZ_SIM_RESOURCE_PATH", "IGN_GAZEBO_RESOURCE_PATH"):
         current = [p for p in os.environ.get(variable, "").split(":") if p]
         os.environ[variable] = ":".join(current + [p for p in paths if p not in current])

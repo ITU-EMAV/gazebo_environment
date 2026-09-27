@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!--
+  The SAC car in Gazebo Harmonic: sac_description's URDF (the same one the real car uses)
+  plus the simulated sensors and the Gazebo systems that drive it. Dimensions, limits and
+  sensor mounts are in sac_description; only what is simulation-specific lives here.
+
+  Topics are under /<namespace>/ (default sac). The world must load the Sensors, Imu and
+  NavSat systems (see worlds/sonoma.sdf).
+-->
+<robot name="$(arg namespace)" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:arg name="namespace" default="sac" />
+  <xacro:property name="namespace" value="$(arg namespace)" />
+
+  <xacro:include filename="$(find sac_description)/urdf/sac.urdf.xacro" />
+  <xacro:include filename="$(find gazebo_environment)/urdf/sensors.gazebo.xacro" />
+
+  <!-- ============================== Tyres ============================== -->
+  <xacro:macro name="tyre" params="wheel">
+    <gazebo reference="${wheel}">
+      <mu1>1.1</mu1>
+      <mu2>1.1</mu2>
+    </gazebo>
+  </xacro:macro>
+  <xacro:tyre wheel="front_left_wheel" />
+  <xacro:tyre wheel="front_right_wheel" />
+  <xacro:tyre wheel="rear_left_wheel" />
+  <xacro:tyre wheel="rear_right_wheel" />
+
+  <!-- ============================== Sensors ============================== -->
+  <!-- Keep the rack as its own link, so the sensors hang off it -->
+  <xacro:preserve_joint joint="roof_rack_joint" />
+
+  <xacro:zed2_gazebo name="front_camera" namespace="${namespace}" />
+  <xacro:imu_gazebo name="middle_imu" namespace="${namespace}" />
+  <xacro:imu_gazebo name="front_imu" namespace="${namespace}" />
+  <xacro:imu_gazebo name="back_imu" namespace="${namespace}" />
+  <!-- One fix per antenna at 10 Hz -->
+  <xacro:navsat_gazebo name="navsat_front_right" namespace="${namespace}" />
+  <xacro:navsat_gazebo name="navsat_rear_left" namespace="${namespace}" />
+  <xacro:vlp16_gazebo name="roof_lidar" namespace="${namespace}" />
+
+  <!-- ============================== Gazebo systems ============================== -->
+  <!-- Ground truth pose of the whole model, used by the odometry_tf node -->
+  <gazebo>
+    <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
+      <topic>${namespace}/ground_truth/pose</topic>
+      <publish_model_pose>true</publish_model_pose>
+      <publish_link_pose>false</publish_link_pose>
+      <update_frequency>50</update_frequency>
+    </plugin>
+  </gazebo>
+
+  <!-- 50 Hz instead of every physics step, which only loaded robot_state_publisher -->
+  <gazebo>
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+      <update_rate>50</update_rate>
+    </plugin>
+  </gazebo>
+
+  <!-- Rear-wheel drive (like the smart) and front steering from /<namespace>/actuators/cmd_vel -->
+  <gazebo>
+    <plugin filename="gz-sim-ackermann-steering-system" name="gz::sim::systems::AckermannSteering">
+      <topic>${namespace}/actuators/cmd_vel</topic>
+      <left_joint>rear_left_wheel_joint</left_joint>
+      <right_joint>rear_right_wheel_joint</right_joint>
+      <left_steering_joint>front_left_wheel_steering_joint</left_steering_joint>
+      <right_steering_joint>front_right_wheel_steering_joint</right_steering_joint>
+      <kingpin_width>${front_track}</kingpin_width>
+      <steering_limit>${steering_limit}</steering_limit>
+      <wheel_base>${wheel_base}</wheel_base>
+      <wheel_separation>${rear_track}</wheel_separation>
+      <wheel_radius>${wheel_radius}</wheel_radius>
+      <min_velocity>${-max_reverse_speed}</min_velocity>
+      <max_velocity>${max_speed}</max_velocity>
+      <min_acceleration>${-max_deceleration}</min_acceleration>
+      <max_acceleration>${max_acceleration}</max_acceleration>
+
+      <odom_publish_frequency>10</odom_publish_frequency>
+      <odom_topic>${namespace}/calculations/steering_odom</odom_topic>
+      <tf_topic>${namespace}/tf/steering_odom</tf_topic>
+      <!-- Wheel odometry in the odom frame (REP 105), ready for an EKF -->
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_footprint</child_frame_id>
+    </plugin>
+  </gazebo>
+
+</robot>

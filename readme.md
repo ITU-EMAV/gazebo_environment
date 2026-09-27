@@ -4,6 +4,11 @@ Gazebo Harmonic (ROS 2 Jazzy) simulation of the **SAC** car on the Sonoma Racewa
 Mercedes smart fortwo sized car (rear-wheel drive, Ackermann steering, 20 m/s top speed) with a
 Stereolabs ZED 2 camera, a Velodyne VLP-16 lidar, three IMUs and a two-antenna GNSS receiver.
 
+The car itself (dimensions, sensor mounts, frames) is `sac_description` from
+[sac_autonomy](https://github.com/ITU-EMAV/sac_autonomy), the same URDF the real car uses. This
+package adds only what is simulation-specific: the Gazebo sensors, the plugins that drive the
+car, the world and the bridge. It needs `sac_autonomy` in the same workspace.
+
 ## Run
 ```bash
 ros2 launch gazebo_environment sonoma.launch.py            # with the Gazebo window
@@ -53,17 +58,18 @@ REP 105 layout: `map -> odom -> base_footprint -> link_chassis -> sensors`.
 ## Files
 | Path | Content |
 |---|---|
-| `urdf/sac.urdf.xacro` | the car. **All dimensions, limits and sensor mounts are properties at the top**; values marked "not measured" are placeholders until they are measured on the real car. |
-| `urdf/roof_rack.urdf.xacro` | aluminium roof rack carrying the sensors (sizes estimated from photos) |
-| `urdf/zed2.urdf.xacro`, `lidar3d`, `imu`, `navsat` | sensor macros; datasheet values (ZED 2, VLP-16) at the top of each file. ZED frame names follow the ZED ROS 2 wrapper. |
+| `urdf/sac.gazebo.xacro` | the car in Gazebo: `sac_description`'s URDF plus tyre friction, the simulated sensors and the Gazebo systems (ground truth pose, joint states, Ackermann steering) |
+| `urdf/sensors.gazebo.xacro` | simulated ZED 2, VLP-16, IMU and GNSS for the frames of `sac_description`; datasheet values and noise at the top of each part |
 | `worlds/sonoma.sdf` | world: Gazebo systems (the sensor systems live here, not in the robot), 2 ms physics step, geographic origin |
 | `launch/sonoma.launch.py` | simulation |
-| `launch/rviz.launch.py` | the model in RViz with joint sliders, no simulation |
 | `config/bridge.yaml` | Gazebo <-> ROS topics |
 | `gazebo_environment/odometry_tf.py` | publishes `map -> odom -> base_footprint` from the ground truth |
 | `gazebo_environment/web_teleop.py` | drives the car from the viewer's Teleop panel like a cruise control |
 | `gazebo_environment/lidar_filter.py` | drops the lidar rays without a return (Gazebo gives them inf coordinates) |
 | `gazebo_environment/track_visual.py` | converts the Sonoma model to GLB once and publishes it (needs `trimesh`) |
+
+Dimensions, limits and sensor mounts are changed in `sac_description/urdf/sac.urdf.xacro`;
+`ros2 launch sac_description display.launch.py` shows the model in RViz without a simulation.
 
 ## Conventions
 - REP 103/105: x forward, y left, z up; `base_footprint` on the ground under the middle of the car.
@@ -74,7 +80,8 @@ REP 105 layout: `map -> odom -> base_footprint -> link_chassis -> sensors`.
 
 ## How close to the real car
 Values come from datasheets (smart fortwo W453, ZED 2, VLP-16, BMI085) until they are measured
-on the real car; they are properties at the top of each URDF file.
+on the real car; they are properties at the top of the URDF files (mounts and sizes in
+`sac_description`, sensor behaviour in `urdf/sensors.gazebo.xacro`).
 
 | | Simulated |
 |---|---|
@@ -94,18 +101,7 @@ Not like the real car:
   error grows with distance.
 
 ## Running the real car with the same names
-The simulation's topic and frame names are the interface: configure and remap the real
-drivers to them, so the same code runs on both.
-
-| Sensor | Topic(s) | frame_id |
-|---|---|---|
-| ZED 2 (ZED ROS 2 wrapper, camera name `front_camera`) | `/sac/sensors/front_camera/image`, `.../depth_image`, `.../camera_info`, `.../points`, `.../imu` | `front_camera_left_camera_optical_frame`; IMU `front_camera_imu_link` |
-| VLP-16 (velodyne driver) | `/sac/sensors/roof_lidar/points` | `roof_lidar_frame` |
-| GNSS receiver (two antennas) | `/sac/sensors/navsat_front_right/navsat`, `/sac/sensors/navsat_rear_left/navsat` | `navsat_front_right_frame`, `navsat_rear_left_frame` |
-| IMUs | `/sac/sensors/middle_imu/imu`, `/sac/sensors/front_imu/imu`, `/sac/sensors/back_imu/imu` | `middle_imu_frame`, `front_imu_frame`, `back_imu_frame` |
-| Drive | `/sac/actuators/cmd_vel` (`geometry_msgs/Twist`) | |
-
-On the real car, `robot_state_publisher` with this package's URDF provides the sensor frames.
-Drivers that publish their own frames or pose TFs (the ZED wrapper's URDF and positional
-tracking TF, for example) should have that turned off, or the TF tree gets two parents for the
-same frame.
+The simulation's topic and frame names are the interface between the car and the autonomy
+code; it is described in [sac_autonomy's README](https://github.com/ITU-EMAV/sac_autonomy#interface).
+On the real car, [sac_drivers](https://github.com/ITU-EMAV/sac_drivers) publishes the same
+topics, and `robot_state_publisher` with `sac_description` provides the same frames.
