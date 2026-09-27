@@ -43,6 +43,7 @@ something subscribes to it.
 | Path | Content |
 |---|---|
 | `urdf/sac.urdf.xacro` | the car. **All dimensions, limits and sensor mounts are properties at the top**; values marked "not measured" are placeholders until they are measured on the real car. |
+| `urdf/roof_rack.urdf.xacro` | aluminium roof rack carrying the sensors (sizes estimated from photos) |
 | `urdf/zed2.urdf.xacro`, `lidar3d`, `imu`, `navsat` | sensor macros; datasheet values (ZED 2, VLP-16) at the top of each file. ZED frame names follow the ZED ROS 2 wrapper. |
 | `worlds/sonoma.sdf` | world: Gazebo systems (the sensor systems live here, not in the robot), 2 ms physics step, geographic origin |
 | `launch/sonoma.launch.py` | simulation |
@@ -66,6 +67,7 @@ on the real car; they are properties at the top of each URDF file.
 |---|---|
 | Driving | rear-wheel drive, 20 m/s top speed, 3 m/s^2 acceleration, 0.6 rad steering |
 | Mass | ~880 kg; centre of mass 40/60 front/rear, 0.55 m high (rear engine) |
+| Sensor mounts | on the roof rack: ZED 2 level on a ball head at the front, VLP-16 in the middle with its base 20 cm above the roof (measured), GNSS antennas at both ends of the front bar. The lowest lidar beams hit the rack, as on the real car. |
 | ZED 2 | 1280x720 at 15 Hz, 110 deg HFOV, depth 0.3-20 m, image noise |
 | VLP-16 | 16 x 1800 points at 10 Hz (0.2 deg), +-15 deg, 100 m, 1.5 cm noise |
 | IMUs | 100 Hz, BMI085-like noise (gyro 0.0017 rad/s, accel 0.012 m/s^2) and a random bias per run |
