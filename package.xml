@@ -4,11 +4,11 @@
   <name>gazebo_environment</name>
   <version>1.0.0</version>
   <description>
-    Gazebo Harmonic simulation of the SAC Ackermann car (RGB-D camera, 3D lidar, IMU, GNSS)
-    on the Sonoma Raceway, with the ROS 2 bridge and a track model for web viewers.
+    Gazebo Harmonic simulation of the SAC car (smart fortwo size, ZED 2 camera, VLP-16 lidar,
+    IMU, GNSS) on the Sonoma Raceway, with the ROS 2 bridge and a track model for web viewers.
   </description>
   <maintainer email="yahmetakdal@gmail.com">nuke</maintainer>
-  <license>TODO: License declaration</license>
+  <license>MIT</license>
 
   <buildtool_depend>ament_python</buildtool_depend>
 

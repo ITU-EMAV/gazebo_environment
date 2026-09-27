@@ -2,8 +2,9 @@
 <!-- IMU on a fixed link. Needs the Imu system in the world. -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-    <xacro:macro name="imu" params="name parent_link *origin namespace update_rate:=100">
-        <xacro:property name="base_frame" value="${name}_imu_frame" />
+    <xacro:macro name="imu" params="name parent_link *origin namespace update_rate:=100 frame:=''">
+        <!-- Frame name: <name>_imu_frame unless given -->
+        <xacro:property name="base_frame" value="${frame if frame else name + '_imu_frame'}" />
 
         <joint name="${name}_imu_joint" type="fixed">
             <parent link="${parent_link}" />

@@ -1,10 +1,12 @@
 <?xml version="1.0"?>
 <!--
-  SAC: Ackermann-steered car with a front RGB-D camera, a 3D lidar, an IMU and a GNSS
-  receiver, for Gazebo Harmonic.
+  SAC: a Mercedes smart fortwo sized car (rear-wheel drive, Ackermann steering) with a
+  ZED 2 stereo camera, a Velodyne VLP-16 lidar, an IMU and a GNSS receiver, for Gazebo
+  Harmonic.
 
   All dimensions and limits are properties below, so the model can be matched to the real
-  car in one place. Values marked "not measured" are placeholders.
+  car in one place. Values marked "not measured" come from the smart fortwo (W453)
+  datasheet or are estimates, not from the real car.
 
   Frames (REP 103/105): x forward, y left, z up. base_footprint lies on the ground under
   the middle of the car; wheels turn in the positive direction when the car drives forward.
@@ -18,35 +20,38 @@
   <xacro:include filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/imu.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/navsat.urdf.xacro" />
-  <xacro:include filename="$(find gazebo_environment)/urdf/camera.urdf.xacro" />
+  <xacro:include filename="$(find gazebo_environment)/urdf/zed2.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/lidar3d.urdf.xacro" />
 
-  <!-- ===================== Vehicle parameters (not measured) ===================== -->
-  <xacro:property name="wheel_base" value="1.8" />        <!-- front axle to rear axle [m] -->
-  <xacro:property name="track_width" value="1.28" />      <!-- left to right wheel centre [m] -->
-  <xacro:property name="wheel_radius" value="0.25" />
-  <xacro:property name="wheel_width" value="0.15" />
-  <xacro:property name="wheel_mass" value="11.0" />
-  <xacro:property name="steering_limit" value="0.8" />    <!-- [rad] -->
+  <!-- ============ Vehicle parameters (smart fortwo W453; not measured) ============ -->
+  <xacro:property name="wheel_base" value="1.873" />      <!-- front axle to rear axle [m] -->
+  <xacro:property name="front_track" value="1.469" />     <!-- left to right wheel centre [m] -->
+  <xacro:property name="rear_track" value="1.430" />
+  <xacro:property name="wheel_radius" value="0.30" />     <!-- 165/65 R15 front, 185/60 R15 rear -->
+  <xacro:property name="wheel_width" value="0.175" />
+  <xacro:property name="wheel_mass" value="15.0" />
+  <!-- 6.95 m turning circle -->
+  <xacro:property name="steering_limit" value="0.6" />    <!-- [rad] -->
 
-  <!-- Body, used for collisions and inertia; matches the size of the visual mesh -->
-  <xacro:property name="body_length" value="2.6" />
-  <xacro:property name="body_width" value="1.5" />
-  <xacro:property name="body_bottom" value="0.125" />     <!-- ground clearance [m] -->
-  <xacro:property name="body_top" value="1.44" />
-  <xacro:property name="body_mass" value="500.0" />
+  <!-- Body, used for collisions and inertia -->
+  <xacro:property name="body_length" value="2.695" />
+  <xacro:property name="body_width" value="1.663" />
+  <xacro:property name="body_bottom" value="0.15" />      <!-- ground clearance [m] -->
+  <xacro:property name="body_top" value="1.555" />
+  <xacro:property name="body_mass" value="820.0" />       <!-- ~880 kg kerb weight without wheels -->
 
   <xacro:property name="max_speed" value="20.0" />        <!-- [m/s] forward -->
-  <xacro:property name="max_reverse_speed" value="10.0" />
-  <xacro:property name="max_acceleration" value="5.0" />  <!-- [m/s^2] -->
+  <xacro:property name="max_reverse_speed" value="5.0" />
+  <xacro:property name="max_acceleration" value="3.0" />  <!-- [m/s^2] -->
 
   <!-- Sensor mounts, relative to base_footprint / link_chassis (same origin; not measured) -->
-  <!-- Front camera at the top of the windshield, tilted down to see the road -->
-  <xacro:property name="camera_xyz" value="0.5 0 1.35" />
-  <xacro:property name="camera_pitch" value="0.2" />      <!-- [rad], positive tilts down -->
-  <xacro:property name="lidar_xyz" value="-0.3 0 1.6" />
-  <xacro:property name="imu_xyz" value="0 0 0.6" />       <!-- about the centre of mass -->
-  <xacro:property name="gnss_xyz" value="0 0 1.44" />     <!-- antenna on the roof -->
+  <!-- ZED 2 behind the top of the windshield, tilted down to see the road -->
+  <xacro:property name="camera_xyz" value="0.45 0 1.40" />
+  <xacro:property name="camera_pitch" value="0.15" />     <!-- [rad], positive tilts down -->
+  <!-- VLP-16 on the roof; the lidar frame is its optical centre, 37.7 mm above the roof -->
+  <xacro:property name="lidar_xyz" value="-0.2 0 ${1.555 + 0.0377}" />
+  <xacro:property name="imu_xyz" value="0 0 0.5" />       <!-- about the centre of mass -->
+  <xacro:property name="gnss_xyz" value="-0.5 0 1.555" /> <!-- antenna on the roof -->
 
   <!-- ============================== Body ============================== -->
   <link name="base_footprint" />
@@ -72,10 +77,10 @@
 
   <link name="link_chassis">
     <visual name="chassis_visual">
-      <!-- The mesh is Y-up and in centimetres -->
+      <!-- A smart fortwo, Y-up; the scale makes it 2.695 x 1.663 x 1.555 m -->
       <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}" />
       <geometry>
-        <mesh filename="package://gazebo_environment/meshes/smart_car.obj" scale="0.012 0.012 0.013" />
+        <mesh filename="package://gazebo_environment/meshes/smart_car.obj" scale="0.0125 0.0129 0.0135" />
       </geometry>
       <material name="white">
         <color rgba="0.9 0.9 0.9 1.0" />
@@ -159,15 +164,15 @@
     </joint>
   </xacro:macro>
 
-  <xacro:rear_wheel side="left" y="${track_width / 2}" />
-  <xacro:rear_wheel side="right" y="${-track_width / 2}" />
-  <xacro:front_wheel side="left" y="${track_width / 2}" />
-  <xacro:front_wheel side="right" y="${-track_width / 2}" />
+  <xacro:rear_wheel side="left" y="${rear_track / 2}" />
+  <xacro:rear_wheel side="right" y="${-rear_track / 2}" />
+  <xacro:front_wheel side="left" y="${front_track / 2}" />
+  <xacro:front_wheel side="right" y="${-front_track / 2}" />
 
   <!-- ============================== Sensors ============================== -->
-  <xacro:camera name="front_camera" parent_link="link_chassis" namespace="$(arg namespace)">
+  <xacro:zed2 name="front_camera" parent_link="link_chassis" namespace="$(arg namespace)">
     <origin xyz="${camera_xyz}" rpy="0 ${camera_pitch} 0" />
-  </xacro:camera>
+  </xacro:zed2>
 
   <xacro:imu name="middle_imu" parent_link="link_chassis" namespace="$(arg namespace)">
     <origin xyz="${imu_xyz}" rpy="0 0 0" />
@@ -200,18 +205,18 @@
     </plugin>
   </gazebo>
 
-  <!-- Front-wheel drive and steering from /<namespace>/actuators/cmd_vel -->
+  <!-- Rear-wheel drive (like the smart) and front steering from /<namespace>/actuators/cmd_vel -->
   <gazebo>
     <plugin filename="gz-sim-ackermann-steering-system" name="gz::sim::systems::AckermannSteering">
       <topic>$(arg namespace)/actuators/cmd_vel</topic>
-      <left_joint>front_left_wheel_rotating_joint</left_joint>
-      <right_joint>front_right_wheel_rotating_joint</right_joint>
+      <left_joint>rear_left_wheel_joint</left_joint>
+      <right_joint>rear_right_wheel_joint</right_joint>
       <left_steering_joint>front_left_wheel_steering_joint</left_steering_joint>
       <right_steering_joint>front_right_wheel_steering_joint</right_steering_joint>
-      <kingpin_width>${track_width}</kingpin_width>
+      <kingpin_width>${front_track}</kingpin_width>
       <steering_limit>${steering_limit}</steering_limit>
       <wheel_base>${wheel_base}</wheel_base>
-      <wheel_separation>${track_width}</wheel_separation>
+      <wheel_separation>${rear_track}</wheel_separation>
       <wheel_radius>${wheel_radius}</wheel_radius>
       <min_velocity>${-max_reverse_speed}</min_velocity>
       <max_velocity>${max_speed}</max_velocity>

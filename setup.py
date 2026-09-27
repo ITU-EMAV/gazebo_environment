@@ -23,7 +23,7 @@ setup(
     maintainer="MrSkyGodz",
     maintainer_email="yunus.akdal@gmail.com",
     description="Gazebo Harmonic simulation of the SAC car on the Sonoma Raceway",
-    license="TODO: License declaration",
+    license="MIT",
     entry_points={
         "console_scripts": [
             "odometry_tf = gazebo_environment.odometry_tf:main",

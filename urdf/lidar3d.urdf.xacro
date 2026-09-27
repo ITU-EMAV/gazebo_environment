@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
 <!--
-  3D lidar (GPU ray casting) on a fixed link, publishing a point cloud.
+  Velodyne VLP-16 (GPU ray casting) on a fixed link, publishing a point cloud.
+  The link origin is the sensor's optical centre, 37.7 mm above its base.
   Needs the Sensors system in the world.
-
-  The visual is a Velodyne VLP-16, but the beam pattern below is not a VLP-16 (that has
-  16 channels over +-15 deg). Set it to the real lidar's values.
 -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-    <xacro:property name="lidar_horizontal_samples" value="360" />
-    <xacro:property name="lidar_vertical_samples" value="40" />
-    <xacro:property name="lidar_vertical_half_angle" value="0.186" />  <!-- [rad] -->
+    <!-- VLP-16 datasheet: 16 channels over +-15 deg, 0.2 deg steps at 10 Hz, 100 m, +-3 cm -->
+    <xacro:property name="lidar_horizontal_samples" value="1800" />
+    <xacro:property name="lidar_vertical_samples" value="16" />
+    <xacro:property name="lidar_vertical_half_angle" value="${15 * pi / 180}" />
     <xacro:property name="lidar_min_range" value="0.5" />
     <xacro:property name="lidar_max_range" value="100.0" />
+    <xacro:property name="lidar_noise" value="0.015" />
 
     <xacro:macro name="lidar3d" params="name parent_link *origin namespace update_rate:=10">
         <xacro:property name="base_frame" value="${name}_lidar_frame" />
@@ -26,10 +26,10 @@
         <link name="${base_frame}">
             <xacro:inertial_dummy />
             <visual>
-                <!-- The mesh is Y-up and in millimetres -->
-                <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi}" />
+                <!-- The mesh is Y-up, in millimetres, with its origin at the base -->
+                <origin xyz="0 0 -0.0377" rpy="${pi/2} 0 ${pi}" />
                 <geometry>
-                    <mesh filename="package://gazebo_environment/meshes/velodyne-vlp16.stl" scale="0.002 0.002 0.002" />
+                    <mesh filename="package://gazebo_environment/meshes/velodyne-vlp16.stl" scale="0.001 0.001 0.001" />
                 </geometry>
             </visual>
         </link>
@@ -61,7 +61,7 @@
                     <noise>
                         <type>gaussian</type>
                         <mean>0.0</mean>
-                        <stddev>0.01</stddev>
+                        <stddev>${lidar_noise}</stddev>
                     </noise>
                 </lidar>
             </sensor>
