@@ -61,18 +61,22 @@
   <xacro:property name="rack_top_z" value="${rack_base_z + rack_clearance + rack_profile}" />
   <xacro:property name="rack_mid_x" value="${(rack_front_x + rack_rear_x) / 2}" />
 
-  <!-- Sensor mounts, relative to base_footprint / link_chassis (same origin) -->
+  <!-- Sensor mounts. The camera, lidar and GNSS antennas are on the roof rack and given
+       relative to its frame (middle of the rack, top of the profiles); the IMU is on the
+       chassis, relative to base_footprint. -->
+  <xacro:property name="rack_front" value="${rack_front_x - rack_mid_x}" />  <!-- front bar, in the rack frame -->
   <!-- ZED 2 on a 10 cm ball head in the middle of the front bar, level -->
-  <xacro:property name="camera_xyz" value="${rack_front_x} 0 ${rack_top_z + 0.10}" />
+  <xacro:property name="camera_xyz" value="${rack_front} 0 0.10" />
   <xacro:property name="camera_pitch" value="0.0" />      <!-- [rad], positive tilts down -->
   <!-- VLP-16 on a post on the cross bar, in the middle of the rack, its base 20 cm above
        the roof (measured); the lidar frame is its optical centre, 37.7 mm above the base -->
   <xacro:property name="lidar_base_above_roof" value="0.20" />
-  <xacro:property name="lidar_xyz" value="${rack_mid_x} 0 ${roof_z + lidar_base_above_roof + 0.0377}" />
+  <xacro:property name="lidar_xyz" value="0 0 ${roof_z + lidar_base_above_roof - rack_top_z + 0.0377}" />
   <!-- GNSS antennas at both ends of the front bar; the simulated receiver uses the left one -->
   <xacro:property name="gnss_antenna_y" value="${rack_half_width - 0.03}" />
-  <xacro:property name="gnss_xyz" value="${rack_front_x} ${gnss_antenna_y} ${rack_top_z + 0.07}" />
-  <xacro:property name="imu_xyz" value="0 0 0.5" />       <!-- about the centre of mass (not measured) -->
+  <xacro:property name="gnss_xyz" value="${rack_front} ${gnss_antenna_y} 0.07" />
+  <!-- IMU at the front of the car, on the centre line over the front axle (not measured) -->
+  <xacro:property name="imu_xyz" value="${wheel_base / 2} 0 0.5" />
 
   <!-- ============================== Body ============================== -->
   <link name="base_footprint" />
@@ -196,20 +200,21 @@
     profile="${rack_profile}" post_height="${roof_z + lidar_base_above_roof - rack_top_z}"
     antenna_y="${gnss_antenna_y}" />
 
-  <xacro:zed2 name="front_camera" parent_link="link_chassis" namespace="$(arg namespace)">
+  <xacro:zed2 name="front_camera" parent_link="roof_rack" namespace="$(arg namespace)">
     <origin xyz="${camera_xyz}" rpy="0 ${camera_pitch} 0" />
   </xacro:zed2>
 
+  <!-- Named middle_imu for its topic, /sac/sensors/middle_imu/imu -->
   <xacro:imu name="middle_imu" parent_link="link_chassis" namespace="$(arg namespace)">
     <origin xyz="${imu_xyz}" rpy="0 0 0" />
   </xacro:imu>
 
   <!-- 10 Hz like a typical GNSS receiver -->
-  <xacro:navsat name="navsat" parent_link="link_chassis" namespace="$(arg namespace)" update_rate="10">
+  <xacro:navsat name="navsat" parent_link="roof_rack" namespace="$(arg namespace)" update_rate="10">
     <origin xyz="${gnss_xyz}" rpy="0 0 0" />
   </xacro:navsat>
 
-  <xacro:lidar3d name="front_3d_lidar" parent_link="link_chassis" namespace="$(arg namespace)">
+  <xacro:lidar3d name="front_3d_lidar" parent_link="roof_rack" namespace="$(arg namespace)">
     <origin xyz="${lidar_xyz}" rpy="0 0 0" />
   </xacro:lidar3d>
 
