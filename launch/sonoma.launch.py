@@ -5,7 +5,7 @@ from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDesc
 from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, Command
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node, SetParameter
+from launch_ros.actions import Node
 
 
 def generate_launch_description():
@@ -63,44 +63,17 @@ def generate_launch_description():
     
 
 
-    ign_bridge = Node(
+    # All Gazebo <-> ROS topics in one process; sensors are bridged lazily (see the yaml).
+    # The bridge takes message stamps from Gazebo, so it does not need /clock.
+    bridge = Node(
         package="ros_gz_bridge",
         executable="parameter_bridge",
-        name="ign_bridge",
-        arguments=[
-            "/clock" + "@rosgraph_msgs/msg/Clock" + "[ignition.msgs.Clock",
-            
-            # "/laser/scan" + "@sensor_msgs/msg/LaserScan" + "[ignition.msgs.LaserScan",
-
-
-            f"/world/{world}/model/{robot_name}/joint_state"
-            + "@sensor_msgs/msg/JointState"
-            + "[ignition.msgs.Model",
-
-            f"/world/{world}/pose/info"
-            + "@geometry_msgs/msg/PoseArray"
-            + "[ignition.msgs.Pose_V",
-
-            f"{robot_name}/ground_truth/pose"
-            + "@geometry_msgs/msg/PoseStamped"
-            + "[ignition.msgs.Pose",
-        ],
-        remappings=[
-            (f"/world/{world}/model/{robot_name}/joint_state", "/joint_states"),
-            (f"/world/{world}/pose/info", "/pose_info"),
-        ],
+        name="gz_bridge",
+        parameters=[{"config_file": os.path.join(package_directory, "config", "bridge.yaml")}],
         output="screen",
     )
 
-
-    imu_bridge = create_imu_brige(robot_name,"middle_imu")
-    oakd_camera_bridge = create_camera_brige(robot_name,"front_camera")
-    navsat_bridge  = create_navsat_brige(robot_name,"navsat")
-    ackerman_bridge = create_ackerman_bridge(robot_name)
-    lidar_bridge  = create_lidar_brige(robot_name,"front_3d_lidar")
-
-    
-
+    # Stamps come from the pose message itself, so it does not need /clock either.
     odometry_tf = Node(
         package="gazebo_environment",
         executable="odometry_tf",
@@ -109,9 +82,16 @@ def generate_launch_description():
         parameters=[{"pose_topic": f"/{robot_name}/ground_truth/pose"}],
     )
 
+    # The track as a 3D marker, for viewers outside Gazebo (Foxglove, RViz)
+    track_visual = Node(
+        package="gazebo_environment",
+        executable="track_visual",
+        name="track_visual",
+        output="screen",
+    )
+
     return LaunchDescription(
         [
-            SetParameter(name="use_sim_time", value=True),
             declare_world_arg,
             declare_gui_arg,
             gz_sim,
@@ -119,13 +99,9 @@ def generate_launch_description():
             robot_state_publisher_node,
             gz_spawn_entity,
 
-            ign_bridge,
-            oakd_camera_bridge,
-            imu_bridge,
-            navsat_bridge,
-            ackerman_bridge,
-            lidar_bridge,
+            bridge,
             odometry_tf,
+            track_visual,
         ]
     )
 def create_world(world_config, gui_config):
@@ -218,140 +194,3 @@ def spawn_entity(name,robot_desc_path,xyz,rpy):
     )
 
     return gz_spawn_entity
-    
-    
-
-def create_camera_brige(name,camera_name):
-    camera_bridge = Node(
-        package="ros_gz_bridge",
-        executable="parameter_bridge",
-        name=f"{camera_name}_camera_bridge",
-        output="screen",
-        parameters=[{"use_sim_time": True}],
-        arguments=[
-            [
-                name,
-                f"/sensors/{camera_name}/image"
-                + "@sensor_msgs/msg/Image"
-                + "[ignition.msgs.Image",
-            ],
-            [
-                name,
-                f"/sensors/{camera_name}/depth_image"
-                + "@sensor_msgs/msg/Image"
-                + "[ignition.msgs.Image",
-            ],
-            [
-                name,
-                f"/sensors/{camera_name}/points"
-                + "@sensor_msgs/msg/PointCloud2"
-                + "[ignition.msgs.PointCloudPacked",
-            ],
-            [
-                name,
-                f"/sensors/{camera_name}/camera_info"
-                + "@sensor_msgs/msg/CameraInfo"
-                + "[ignition.msgs.CameraInfo",
-            ],
-            [
-                name,
-                f"/sensors/{camera_name}/imu"
-                + "@sensor_msgs/msg/Imu"
-                + "[ignition.msgs.IMU",
-            ],
-        ]
-    )
-
-    return camera_bridge
-
-
-def create_imu_brige(name,imu_name):
-    imu_bridge = Node(
-        package="ros_gz_bridge",
-        executable="parameter_bridge",
-        name=f"{imu_name}_imu_bridge",
-        output="screen",
-        parameters=[{"use_sim_time": True}],
-        arguments=[
-            [
-                name,
-                f"/sensors/{imu_name}/imu"
-                + "@sensor_msgs/msg/Imu"
-                + "[ignition.msgs.IMU",
-            ],
-        ]
-    )
-
-    return imu_bridge
-
-
-def create_navsat_brige(name,navsat_name):
-    navsat_bridge = Node(
-        package="ros_gz_bridge",
-        executable="parameter_bridge",
-        name=f"{navsat_name}_navsat_bridge",
-        output="screen",
-        parameters=[{"use_sim_time": True}],
-        arguments=[
-            [
-                name,
-                f"/sensors/{navsat_name}/navsat"
-                + "@sensor_msgs/msg/NavSatFix"
-                + "[ignition.msgs.NavSat",
-            ],
-
-        ]
-    )
-
-    return navsat_bridge
-
-def create_ackerman_bridge(name):
-    ackerman_bridge = Node(
-        package="ros_gz_bridge",
-        executable="parameter_bridge",
-        name=f"{name}_ackerman_bridge",
-        output="screen",
-        parameters=[{"use_sim_time": True}],
-        arguments=[
-            [
-                name,
-                f"/actuators/cmd_vel"
-                + "@geometry_msgs/msg/Twist"
-                + "@ignition.msgs.Twist",
-            ],
-            [
-                name,
-                f"/calculations/steering_odom"
-                + "@nav_msgs/msg/Odometry"
-                + "[ignition.msgs.Odometry",
-            ],
-            # [
-            #     f"{name}/tf/steering_odom"
-            #     + "@tf2_msgs/msg/TFMessage" 
-            #     + "[ignition.msgs.Pose_V",
-            # ],
-        ],
-        # remappings=[(f"{name}/tf/steering_odom","/tf")]
-
-    )
-
-    return ackerman_bridge
-
-def create_lidar_brige(name,lidar_name):
-    lidar_bridge = Node(
-        package="ros_gz_bridge",
-        executable="parameter_bridge",
-        name=f"{lidar_name}_navsat_bridge",
-        output="screen",
-        parameters=[{"use_sim_time": True}],
-        arguments=[
-            [
-                name,
-                f"/sensors/{lidar_name}/points"
-                + "@sensor_msgs/msg/PointCloud2"
-                + "[ignition.msgs.PointCloudPacked",
-            ],
-        ]
-    )
-
-    return lidar_bridge

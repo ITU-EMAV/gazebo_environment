@@ -254,8 +254,12 @@
 
   <!-- Joint states plugin -->
   <gazebo>
+    <!-- 50 Hz instead of every physics step (500 Hz), which only loaded
+         robot_state_publisher -->
     <plugin filename="ignition-gazebo-joint-state-publisher-system"
-      name="ignition::gazebo::systems::JointStatePublisher" />
+      name="ignition::gazebo::systems::JointStatePublisher">
+      <update_rate>50</update_rate>
+    </plugin>
   </gazebo>
 
 
