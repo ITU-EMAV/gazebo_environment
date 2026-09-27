@@ -82,3 +82,20 @@ Not like the real car:
   5 m/s^2 instead of the 7 m/s^2 set.
 - The depth image has no noise (Gazebo's RGB-D camera does not model it); a real ZED 2's depth
   error grows with distance.
+
+## Running the real car with the same names
+The simulation's topic and frame names are the interface: configure and remap the real
+drivers to them, so the same code runs on both.
+
+| Sensor | Topic(s) | frame_id |
+|---|---|---|
+| ZED 2 (ZED ROS 2 wrapper, camera name `front_camera`) | `/sac/sensors/front_camera/image`, `.../depth_image`, `.../camera_info`, `.../points`, `.../imu` | `front_camera_left_camera_optical_frame`; IMU `front_camera_imu_link` |
+| VLP-16 (velodyne driver) | `/sac/sensors/front_3d_lidar/points` | `front_3d_lidar_lidar_frame` |
+| GNSS receiver | `/sac/sensors/navsat/navsat` | `navsat_navsat_frame` |
+| IMUs | `/sac/sensors/middle_imu/imu`, `/sac/sensors/front_imu/imu`, `/sac/sensors/back_imu/imu` | `middle_imu_imu_frame`, `front_imu_imu_frame`, `back_imu_imu_frame` |
+| Drive | `/sac/actuators/cmd_vel` (`geometry_msgs/Twist`) | |
+
+On the real car, `robot_state_publisher` with this package's URDF provides the sensor frames.
+Drivers that publish their own frames or pose TFs (the ZED wrapper's URDF and positional
+tracking TF, for example) should have that turned off, or the TF tree gets two parents for the
+same frame.
