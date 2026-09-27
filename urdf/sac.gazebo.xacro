@@ -68,6 +68,10 @@
       <right_steering_joint>front_right_wheel_steering_joint</right_steering_joint>
       <kingpin_width>${front_track}</kingpin_width>
       <steering_limit>${steering_limit}</steering_limit>
+      <!-- The steering joints follow the steering angle with this P gain: the default 1 is a
+           1 s time constant, far slower than power steering, and made path following weave
+           at speed. 8 is ~0.13 s. -->
+      <steer_p_gain>8.0</steer_p_gain>
       <wheel_base>${wheel_base}</wheel_base>
       <wheel_separation>${rear_track}</wheel_separation>
       <wheel_radius>${wheel_radius}</wheel_radius>

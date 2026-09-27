@@ -85,13 +85,13 @@ on the real car; they are properties at the top of the URDF files (mounts and si
 
 | | Simulated |
 |---|---|
-| Driving | rear-wheel drive, 20 m/s top speed, 3 m/s^2 acceleration, 0.6 rad steering |
+| Driving | rear-wheel drive, 20 m/s top speed, 3 m/s^2 acceleration, 0.6 rad steering that follows the command in ~0.13 s (time constant) |
 | Mass | ~880 kg; centre of mass 40/60 front/rear, 0.55 m high (rear engine) |
 | Sensor mounts | camera, lidar and GNSS hang off the `roof_rack` frame (middle of the rack, top of the profiles): ZED 2 level on a ball head at the front, VLP-16 in the middle with its base 20 cm above the roof (measured), GNSS antennas at the front-right and rear-left corners. Three IMUs are on the chassis, on the centre line: in the middle, over the front axle and over the rear axle. |
 | ZED 2 | 1280x720 at 15 Hz, 110 deg HFOV, depth 0.3-20 m, image noise |
 | VLP-16 | 16 x 1800 points at 10 Hz (0.2 deg), +-15 deg, 100 m, 1.5 cm noise |
 | IMUs | 100 Hz, BMI085-like noise (gyro 0.0017 rad/s, accel 0.012 m/s^2) and a random bias per run |
-| GNSS | 10 Hz, standalone receiver error: 1 m horizontal, 1.5 m vertical |
+| GNSS | 10 Hz, 0.3 m horizontal and 0.5 m vertical error for now; a standalone receiver like the real car's is about 1 m and 1.5 m (to be set back with the EKF) |
 
 Not like the real car:
 - `/sac/ground_truth/pose` and the default `odom -> base_footprint` TF are exact (Gazebo's pose).
