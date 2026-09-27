@@ -24,13 +24,13 @@ ros2 topic pub -r 10 /sac/actuators/cmd_vel geometry_msgs/msg/Twist "{linear: {x
 |---|---|---|
 | `/sac/actuators/cmd_vel` | `geometry_msgs/Twist` | input |
 | `/sac/sensors/front_camera/image` | `sensor_msgs/Image` | ZED 2 left camera, 1280x720, `front_camera_left_camera_optical_frame` |
-| `/sac/sensors/front_camera/depth_image` | `sensor_msgs/Image` | 32FC1 metres, 0.3-20 m |
+| `/sac/sensors/front_camera/depth_image` | `sensor_msgs/Image` | 32FC1 metres, 0.3-20 m; +inf beyond range, like the ZED SDK |
 | `/sac/sensors/front_camera/camera_info` | `sensor_msgs/CameraInfo` | |
 | `/sac/sensors/front_camera/points` | `sensor_msgs/PointCloud2` | from the depth image (`depth_image_proc`) |
 | `/sac/sensors/front_camera/imu` | `sensor_msgs/Imu` | ZED 2 IMU (`front_camera_imu_link`) |
 | `/sac/sensors/middle_imu/imu` | `sensor_msgs/Imu` | car IMU |
 | `/sac/sensors/navsat/navsat` | `sensor_msgs/NavSatFix` | real Sonoma coordinates |
-| `/sac/sensors/front_3d_lidar/points` | `sensor_msgs/PointCloud2` | VLP-16, 16 x 1800 points at 10 Hz |
+| `/sac/sensors/front_3d_lidar/points` | `sensor_msgs/PointCloud2` | VLP-16 returns only (like the Velodyne driver), up to 16 x 1800 points at 10 Hz |
 | `/sac/calculations/steering_odom` | `nav_msgs/Odometry` | wheel odometry from the steering plugin |
 | `/sac/ground_truth/pose` | `geometry_msgs/PoseStamped` | exact pose from Gazebo |
 | `/joint_states`, `/tf`, `/tf_static`, `/clock` | | `world -> base_footprint` comes from the ground truth |
@@ -50,6 +50,7 @@ something subscribes to it.
 | `launch/rviz.launch.py` | the model in RViz with joint sliders, no simulation |
 | `config/bridge.yaml` | Gazebo <-> ROS topics |
 | `gazebo_environment/odometry_tf.py` | publishes `world -> base_footprint` |
+| `gazebo_environment/lidar_filter.py` | drops the lidar rays without a return (Gazebo gives them inf coordinates) |
 | `gazebo_environment/track_visual.py` | converts the Sonoma model to GLB once and publishes it (needs `trimesh`) |
 
 ## Conventions

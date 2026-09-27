@@ -90,7 +90,8 @@
   direction: GZ_TO_ROS
   lazy: true
 
-- ros_topic_name: /sac/sensors/front_3d_lidar/points
+# Raw cloud with the no-return rays as inf; lidar_filter publishes .../points without them
+- ros_topic_name: /sac/sensors/front_3d_lidar/points_raw
   gz_topic_name: /sac/sensors/front_3d_lidar/points
   ros_type_name: sensor_msgs/msg/PointCloud2
   gz_type_name: gz.msgs.PointCloudPacked

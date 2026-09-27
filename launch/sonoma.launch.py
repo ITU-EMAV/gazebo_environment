@@ -111,6 +111,20 @@ def generate_launch_description():
         ],
     )
 
+    # Lidar cloud without the no-return rays (inf in Gazebo's cloud), like the real driver
+    lidar_filter = Node(
+        package=PACKAGE,
+        executable="lidar_filter",
+        name="front_3d_lidar_filter",
+        output="screen",
+        parameters=[
+            {
+                "input": f"/{ROBOT_NAME}/sensors/front_3d_lidar/points_raw",
+                "output": f"/{ROBOT_NAME}/sensors/front_3d_lidar/points",
+            }
+        ],
+    )
+
     # The track as a 3D marker, for viewers outside Gazebo (Foxglove, RViz)
     track_visual = Node(package=PACKAGE, executable="track_visual", name="track_visual", output="screen")
 
@@ -123,6 +137,7 @@ def generate_launch_description():
             bridge,
             odometry_tf,
             camera_points,
+            lidar_filter,
             track_visual,
         ]
     )
