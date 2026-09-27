@@ -2,6 +2,25 @@
 <!-- IMU on a fixed link. Needs the Imu system in the world. -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
+    <!-- Noise of a MEMS IMU like the ZED 2's (Bosch BMI085) at 100 Hz: white noise from the
+         noise densities (0.014 deg/s/sqrt(Hz), 175 ug/sqrt(Hz)) over a 50 Hz bandwidth, and a
+         constant bias drawn once per run -->
+    <xacro:property name="imu_gyro_noise" value="0.0017" />         <!-- [rad/s] -->
+    <xacro:property name="imu_gyro_bias" value="0.0005" />          <!-- [rad/s] -->
+    <xacro:property name="imu_accel_noise" value="0.012" />         <!-- [m/s^2] -->
+    <xacro:property name="imu_accel_bias" value="0.02" />           <!-- [m/s^2] -->
+
+    <xacro:macro name="imu_axis_noise" params="axis stddev bias">
+        <xacro:element xacro:name="${axis}">
+            <noise type="gaussian">
+                <mean>0.0</mean>
+                <stddev>${stddev}</stddev>
+                <bias_mean>0.0</bias_mean>
+                <bias_stddev>${bias}</bias_stddev>
+            </noise>
+        </xacro:element>
+    </xacro:macro>
+
     <xacro:macro name="imu" params="name parent_link *origin namespace update_rate:=100 frame:=''">
         <!-- Frame name: <name>_imu_frame unless given -->
         <xacro:property name="base_frame" value="${frame if frame else name + '_imu_frame'}" />
@@ -22,6 +41,18 @@
                 <update_rate>${update_rate}</update_rate>
                 <topic>${namespace}/sensors/${name}/imu</topic>
                 <gz_frame_id>${base_frame}</gz_frame_id>
+                <imu>
+                    <angular_velocity>
+                        <xacro:imu_axis_noise axis="x" stddev="${imu_gyro_noise}" bias="${imu_gyro_bias}" />
+                        <xacro:imu_axis_noise axis="y" stddev="${imu_gyro_noise}" bias="${imu_gyro_bias}" />
+                        <xacro:imu_axis_noise axis="z" stddev="${imu_gyro_noise}" bias="${imu_gyro_bias}" />
+                    </angular_velocity>
+                    <linear_acceleration>
+                        <xacro:imu_axis_noise axis="x" stddev="${imu_accel_noise}" bias="${imu_accel_bias}" />
+                        <xacro:imu_axis_noise axis="y" stddev="${imu_accel_noise}" bias="${imu_accel_bias}" />
+                        <xacro:imu_axis_noise axis="z" stddev="${imu_accel_noise}" bias="${imu_accel_bias}" />
+                    </linear_acceleration>
+                </imu>
             </sensor>
         </gazebo>
 

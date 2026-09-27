@@ -57,3 +57,23 @@ something subscribes to it.
 - All wheels turn in the positive direction when the car drives forward.
 - The world origin is placed at the real Sonoma Raceway (fitted to OpenStreetMap, ~5 m), so
   the GNSS readings match real maps.
+
+## How close to the real car
+Values come from datasheets (smart fortwo W453, ZED 2, VLP-16, BMI085) until they are measured
+on the real car; they are properties at the top of each URDF file.
+
+| | Simulated |
+|---|---|
+| Driving | rear-wheel drive, 20 m/s top speed, 3 m/s^2 acceleration, 0.6 rad steering |
+| Mass | ~880 kg; centre of mass 40/60 front/rear, 0.55 m high (rear engine) |
+| ZED 2 | 1280x720 at 15 Hz, 110 deg HFOV, depth 0.3-20 m, image noise |
+| VLP-16 | 16 x 1800 points at 10 Hz (0.2 deg), +-15 deg, 100 m, 1.5 cm noise |
+| IMUs | 100 Hz, BMI085-like noise (gyro 0.0017 rad/s, accel 0.012 m/s^2) and a random bias per run |
+| GNSS | 10 Hz, standalone receiver error: 1 m horizontal, 1.5 m vertical |
+
+Not like the real car:
+- `/sac/ground_truth/pose` and the `world -> base_footprint` TF are exact (Gazebo's pose).
+- Braking only uses the driven (rear) wheels, a limit of Gazebo's Ackermann plugin: about
+  5 m/s^2 instead of the 7 m/s^2 set.
+- The depth image has no noise (Gazebo's RGB-D camera does not model it); a real ZED 2's depth
+  error grows with distance.

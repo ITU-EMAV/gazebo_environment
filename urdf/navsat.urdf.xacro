@@ -3,6 +3,20 @@
      <spherical_coordinates> in the world for real latitude/longitude. -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
+    <!-- Error of a standalone (non-RTK) GNSS receiver. Gazebo adds the horizontal noise to
+         latitude and longitude in degrees, so it is converted from metres here. -->
+    <xacro:property name="gnss_horizontal_noise" value="1.0" />   <!-- [m] -->
+    <xacro:property name="gnss_vertical_noise" value="1.5" />     <!-- [m] -->
+    <xacro:property name="gnss_velocity_noise" value="0.05" />    <!-- [m/s] -->
+    <xacro:property name="metres_per_degree" value="111320.0" />
+
+    <xacro:macro name="gnss_noise" params="stddev">
+        <noise type="gaussian">
+            <mean>0.0</mean>
+            <stddev>${stddev}</stddev>
+        </noise>
+    </xacro:macro>
+
     <xacro:macro name="navsat" params="name parent_link *origin namespace update_rate:=10">
         <xacro:property name="base_frame" value="${name}_navsat_frame" />
 
@@ -22,6 +36,24 @@
                 <update_rate>${update_rate}</update_rate>
                 <topic>${namespace}/sensors/${name}/navsat</topic>
                 <gz_frame_id>${base_frame}</gz_frame_id>
+                <navsat>
+                    <position_sensing>
+                        <horizontal>
+                            <xacro:gnss_noise stddev="${gnss_horizontal_noise / metres_per_degree}" />
+                        </horizontal>
+                        <vertical>
+                            <xacro:gnss_noise stddev="${gnss_vertical_noise}" />
+                        </vertical>
+                    </position_sensing>
+                    <velocity_sensing>
+                        <horizontal>
+                            <xacro:gnss_noise stddev="${gnss_velocity_noise}" />
+                        </horizontal>
+                        <vertical>
+                            <xacro:gnss_noise stddev="${gnss_velocity_noise}" />
+                        </vertical>
+                    </velocity_sensing>
+                </navsat>
             </sensor>
         </gazebo>
 
