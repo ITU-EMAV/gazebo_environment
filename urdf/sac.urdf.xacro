@@ -49,14 +49,16 @@
   <xacro:property name="max_acceleration" value="3.0" />  <!-- [m/s^2] -->
   <xacro:property name="max_deceleration" value="7.0" />  <!-- braking [m/s^2] -->
 
-  <!-- Roof rack (aluminium profiles, estimated from photos of the real car) -->
-  <xacro:property name="roof_z" value="${body_top}" />
-  <xacro:property name="rack_front_x" value="0.50" />       <!-- front bar, at the top of the windshield -->
-  <xacro:property name="rack_rear_x" value="-0.70" />
-  <xacro:property name="rack_half_width" value="0.55" />
+  <!-- Roof rack (aluminium profiles). Width from photos of the real car, scaled by the ZED 2's
+       known 175 mm width; length fits the flat part of the roof (x 0 to -0.9, y +-0.45). -->
+  <xacro:property name="roof_z" value="${body_top}" />      <!-- highest point of the roof -->
+  <xacro:property name="rack_base_z" value="1.53" />       <!-- roof height under the rack's feet -->
+  <xacro:property name="rack_front_x" value="0.0" />        <!-- front bar, at the top of the windshield -->
+  <xacro:property name="rack_rear_x" value="-0.9" />
+  <xacro:property name="rack_half_width" value="0.375" />
   <xacro:property name="rack_clearance" value="0.05" />     <!-- feet: roof to the bottom of the profiles -->
   <xacro:property name="rack_profile" value="0.04" />       <!-- 40 x 40 mm profile -->
-  <xacro:property name="rack_top_z" value="${roof_z + rack_clearance + rack_profile}" />
+  <xacro:property name="rack_top_z" value="${rack_base_z + rack_clearance + rack_profile}" />
   <xacro:property name="rack_mid_x" value="${(rack_front_x + rack_rear_x) / 2}" />
 
   <!-- Sensor mounts, relative to base_footprint / link_chassis (same origin) -->
@@ -68,7 +70,7 @@
   <xacro:property name="lidar_base_above_roof" value="0.20" />
   <xacro:property name="lidar_xyz" value="${rack_mid_x} 0 ${roof_z + lidar_base_above_roof + 0.0377}" />
   <!-- GNSS antennas at both ends of the front bar; the simulated receiver uses the left one -->
-  <xacro:property name="gnss_antenna_y" value="${rack_half_width - 0.05}" />
+  <xacro:property name="gnss_antenna_y" value="${rack_half_width - 0.03}" />
   <xacro:property name="gnss_xyz" value="${rack_front_x} ${gnss_antenna_y} ${rack_top_z + 0.07}" />
   <xacro:property name="imu_xyz" value="0 0 0.5" />       <!-- about the centre of mass (not measured) -->
 
@@ -189,9 +191,9 @@
   <xacro:front_wheel side="right" y="${-front_track / 2}" />
 
   <!-- ============================== Sensors ============================== -->
-  <xacro:roof_rack parent_link="link_chassis" roof_z="${roof_z}" front_x="${rack_front_x}"
+  <xacro:roof_rack parent_link="link_chassis" roof_z="${rack_base_z}" front_x="${rack_front_x}"
     rear_x="${rack_rear_x}" half_width="${rack_half_width}" clearance="${rack_clearance}"
-    profile="${rack_profile}" post_height="${lidar_base_above_roof - rack_clearance - rack_profile}"
+    profile="${rack_profile}" post_height="${roof_z + lidar_base_above_roof - rack_top_z}"
     antenna_y="${gnss_antenna_y}" />
 
   <xacro:zed2 name="front_camera" parent_link="link_chassis" namespace="$(arg namespace)">
