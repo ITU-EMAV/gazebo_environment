@@ -75,8 +75,10 @@
   <!-- GNSS antennas at both ends of the front bar; the simulated receiver uses the left one -->
   <xacro:property name="gnss_antenna_y" value="${rack_half_width - 0.03}" />
   <xacro:property name="gnss_xyz" value="${rack_front} ${gnss_antenna_y} 0.07" />
-  <!-- IMU at the front of the car, on the centre line over the front axle (not measured) -->
-  <xacro:property name="imu_xyz" value="${wheel_base / 2} 0 0.5" />
+  <!-- Two IMUs on the chassis, on the centre line (not measured): one in the middle of the
+       car, one over the front axle -->
+  <xacro:property name="middle_imu_xyz" value="0 0 0.5" />
+  <xacro:property name="front_imu_xyz" value="${wheel_base / 2} 0 0.5" />
 
   <!-- ============================== Body ============================== -->
   <link name="base_footprint" />
@@ -204,9 +206,12 @@
     <origin xyz="${camera_xyz}" rpy="0 ${camera_pitch} 0" />
   </xacro:zed2>
 
-  <!-- Named middle_imu for its topic, /sac/sensors/middle_imu/imu -->
   <xacro:imu name="middle_imu" parent_link="link_chassis" namespace="$(arg namespace)">
-    <origin xyz="${imu_xyz}" rpy="0 0 0" />
+    <origin xyz="${middle_imu_xyz}" rpy="0 0 0" />
+  </xacro:imu>
+
+  <xacro:imu name="front_imu" parent_link="link_chassis" namespace="$(arg namespace)">
+    <origin xyz="${front_imu_xyz}" rpy="0 0 0" />
   </xacro:imu>
 
   <!-- 10 Hz like a typical GNSS receiver -->

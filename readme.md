@@ -2,7 +2,7 @@
 
 Gazebo Harmonic (ROS 2 Jazzy) simulation of the **SAC** car on the Sonoma Raceway: a
 Mercedes smart fortwo sized car (rear-wheel drive, Ackermann steering, 20 m/s top speed) with a
-Stereolabs ZED 2 camera, a Velodyne VLP-16 lidar, an IMU and a GNSS receiver.
+Stereolabs ZED 2 camera, a Velodyne VLP-16 lidar, two IMUs and a GNSS receiver.
 
 ## Run
 ```bash
@@ -28,7 +28,8 @@ ros2 topic pub -r 10 /sac/actuators/cmd_vel geometry_msgs/msg/Twist "{linear: {x
 | `/sac/sensors/front_camera/camera_info` | `sensor_msgs/CameraInfo` | |
 | `/sac/sensors/front_camera/points` | `sensor_msgs/PointCloud2` | from the depth image (`depth_image_proc`) |
 | `/sac/sensors/front_camera/imu` | `sensor_msgs/Imu` | ZED 2 IMU (`front_camera_imu_link`) |
-| `/sac/sensors/middle_imu/imu` | `sensor_msgs/Imu` | car IMU |
+| `/sac/sensors/middle_imu/imu` | `sensor_msgs/Imu` | IMU in the middle of the car (`middle_imu_imu_frame`) |
+| `/sac/sensors/front_imu/imu` | `sensor_msgs/Imu` | IMU over the front axle (`front_imu_imu_frame`) |
 | `/sac/sensors/navsat/navsat` | `sensor_msgs/NavSatFix` | real Sonoma coordinates |
 | `/sac/sensors/front_3d_lidar/points` | `sensor_msgs/PointCloud2` | VLP-16 returns only (like the Velodyne driver), up to 16 x 1800 points at 10 Hz |
 | `/sac/calculations/steering_odom` | `nav_msgs/Odometry` | wheel odometry from the steering plugin |
@@ -68,7 +69,7 @@ on the real car; they are properties at the top of each URDF file.
 |---|---|
 | Driving | rear-wheel drive, 20 m/s top speed, 3 m/s^2 acceleration, 0.6 rad steering |
 | Mass | ~880 kg; centre of mass 40/60 front/rear, 0.55 m high (rear engine) |
-| Sensor mounts | camera, lidar and GNSS hang off the `roof_rack` frame (middle of the rack, top of the profiles): ZED 2 level on a ball head at the front, VLP-16 in the middle with its base 20 cm above the roof (measured), GNSS antennas at both ends of the front bar. The IMU is on the chassis, on the centre line over the front axle. |
+| Sensor mounts | camera, lidar and GNSS hang off the `roof_rack` frame (middle of the rack, top of the profiles): ZED 2 level on a ball head at the front, VLP-16 in the middle with its base 20 cm above the roof (measured), GNSS antennas at both ends of the front bar. Two IMUs are on the chassis, on the centre line: one in the middle, one over the front axle. |
 | ZED 2 | 1280x720 at 15 Hz, 110 deg HFOV, depth 0.3-20 m, image noise |
 | VLP-16 | 16 x 1800 points at 10 Hz (0.2 deg), +-15 deg, 100 m, 1.5 cm noise |
 | IMUs | 100 Hz, BMI085-like noise (gyro 0.0017 rad/s, accel 0.012 m/s^2) and a random bias per run |
