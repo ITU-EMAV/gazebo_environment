@@ -90,6 +90,13 @@
   direction: GZ_TO_ROS
   lazy: true
 
+- ros_topic_name: /sac/sensors/back_imu/imu
+  gz_topic_name: /sac/sensors/back_imu/imu
+  ros_type_name: sensor_msgs/msg/Imu
+  gz_type_name: gz.msgs.IMU
+  direction: GZ_TO_ROS
+  lazy: true
+
 - ros_topic_name: /sac/sensors/navsat/navsat
   gz_topic_name: /sac/sensors/navsat/navsat
   ros_type_name: sensor_msgs/msg/NavSatFix
