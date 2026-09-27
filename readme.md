@@ -2,7 +2,7 @@
 
 Gazebo Harmonic (ROS 2 Jazzy) simulation of the **SAC** car on the Sonoma Raceway: a
 Mercedes smart fortwo sized car (rear-wheel drive, Ackermann steering, 20 m/s top speed) with a
-Stereolabs ZED 2 camera, a Velodyne VLP-16 lidar, three IMUs and a GNSS receiver.
+Stereolabs ZED 2 camera, a Velodyne VLP-16 lidar, three IMUs and a two-antenna GNSS receiver.
 
 ## Run
 ```bash
@@ -31,7 +31,7 @@ ros2 topic pub -r 10 /sac/actuators/cmd_vel geometry_msgs/msg/Twist "{linear: {x
 | `/sac/sensors/middle_imu/imu` | `sensor_msgs/Imu` | IMU in the middle of the car (`middle_imu_frame`) |
 | `/sac/sensors/front_imu/imu` | `sensor_msgs/Imu` | IMU over the front axle (`front_imu_frame`) |
 | `/sac/sensors/back_imu/imu` | `sensor_msgs/Imu` | IMU over the rear axle (`back_imu_frame`) |
-| `/sac/sensors/navsat/navsat` | `sensor_msgs/NavSatFix` | real Sonoma coordinates |
+| `/sac/sensors/navsat_front_right/navsat`, `/sac/sensors/navsat_rear_left/navsat` | `sensor_msgs/NavSatFix` | two GNSS antennas at opposite rack corners; real Sonoma coordinates |
 | `/sac/sensors/roof_lidar/points` | `sensor_msgs/PointCloud2` | VLP-16 returns only (like the Velodyne driver), up to 16 x 1800 points at 10 Hz |
 | `/sac/calculations/steering_odom` | `nav_msgs/Odometry` | wheel odometry from the steering plugin |
 | `/sac/ground_truth/pose` | `geometry_msgs/PoseStamped` | exact pose from Gazebo |
@@ -61,6 +61,7 @@ REP 105 layout: `map -> odom -> base_footprint -> link_chassis -> sensors`.
 | `launch/rviz.launch.py` | the model in RViz with joint sliders, no simulation |
 | `config/bridge.yaml` | Gazebo <-> ROS topics |
 | `gazebo_environment/odometry_tf.py` | publishes `map -> odom -> base_footprint` from the ground truth |
+| `gazebo_environment/web_teleop.py` | drives the car from the viewer's Teleop panel like a cruise control |
 | `gazebo_environment/lidar_filter.py` | drops the lidar rays without a return (Gazebo gives them inf coordinates) |
 | `gazebo_environment/track_visual.py` | converts the Sonoma model to GLB once and publishes it (needs `trimesh`) |
 
@@ -79,7 +80,7 @@ on the real car; they are properties at the top of each URDF file.
 |---|---|
 | Driving | rear-wheel drive, 20 m/s top speed, 3 m/s^2 acceleration, 0.6 rad steering |
 | Mass | ~880 kg; centre of mass 40/60 front/rear, 0.55 m high (rear engine) |
-| Sensor mounts | camera, lidar and GNSS hang off the `roof_rack` frame (middle of the rack, top of the profiles): ZED 2 level on a ball head at the front, VLP-16 in the middle with its base 20 cm above the roof (measured), GNSS antennas at both ends of the front bar. Three IMUs are on the chassis, on the centre line: in the middle, over the front axle and over the rear axle. |
+| Sensor mounts | camera, lidar and GNSS hang off the `roof_rack` frame (middle of the rack, top of the profiles): ZED 2 level on a ball head at the front, VLP-16 in the middle with its base 20 cm above the roof (measured), GNSS antennas at the front-right and rear-left corners. Three IMUs are on the chassis, on the centre line: in the middle, over the front axle and over the rear axle. |
 | ZED 2 | 1280x720 at 15 Hz, 110 deg HFOV, depth 0.3-20 m, image noise |
 | VLP-16 | 16 x 1800 points at 10 Hz (0.2 deg), +-15 deg, 100 m, 1.5 cm noise |
 | IMUs | 100 Hz, BMI085-like noise (gyro 0.0017 rad/s, accel 0.012 m/s^2) and a random bias per run |
@@ -100,7 +101,7 @@ drivers to them, so the same code runs on both.
 |---|---|---|
 | ZED 2 (ZED ROS 2 wrapper, camera name `front_camera`) | `/sac/sensors/front_camera/image`, `.../depth_image`, `.../camera_info`, `.../points`, `.../imu` | `front_camera_left_camera_optical_frame`; IMU `front_camera_imu_link` |
 | VLP-16 (velodyne driver) | `/sac/sensors/roof_lidar/points` | `roof_lidar_frame` |
-| GNSS receiver | `/sac/sensors/navsat/navsat` | `navsat_frame` |
+| GNSS receiver (two antennas) | `/sac/sensors/navsat_front_right/navsat`, `/sac/sensors/navsat_rear_left/navsat` | `navsat_front_right_frame`, `navsat_rear_left_frame` |
 | IMUs | `/sac/sensors/middle_imu/imu`, `/sac/sensors/front_imu/imu`, `/sac/sensors/back_imu/imu` | `middle_imu_frame`, `front_imu_frame`, `back_imu_frame` |
 | Drive | `/sac/actuators/cmd_vel` (`geometry_msgs/Twist`) | |
 

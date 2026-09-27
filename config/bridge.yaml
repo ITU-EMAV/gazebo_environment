@@ -97,8 +97,15 @@
   direction: GZ_TO_ROS
   lazy: true
 
-- ros_topic_name: /sac/sensors/navsat/navsat
-  gz_topic_name: /sac/sensors/navsat/navsat
+- ros_topic_name: /sac/sensors/navsat_front_right/navsat
+  gz_topic_name: /sac/sensors/navsat_front_right/navsat
+  ros_type_name: sensor_msgs/msg/NavSatFix
+  gz_type_name: gz.msgs.NavSat
+  direction: GZ_TO_ROS
+  lazy: true
+
+- ros_topic_name: /sac/sensors/navsat_rear_left/navsat
+  gz_topic_name: /sac/sensors/navsat_rear_left/navsat
   ros_type_name: sensor_msgs/msg/NavSatFix
   gz_type_name: gz.msgs.NavSat
   direction: GZ_TO_ROS

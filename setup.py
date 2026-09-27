@@ -29,6 +29,7 @@ setup(
             "odometry_tf = gazebo_environment.odometry_tf:main",
             "track_visual = gazebo_environment.track_visual:main",
             "lidar_filter = gazebo_environment.lidar_filter:main",
+            "web_teleop = gazebo_environment.web_teleop:main",
         ],
     },
 )

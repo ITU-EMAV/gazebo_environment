@@ -134,6 +134,15 @@ def generate_launch_description():
         ],
     )
 
+    # Drive from the viewer's Teleop panel (/sac/teleop/pad), like a cruise control
+    web_teleop = Node(
+        package=PACKAGE,
+        executable="web_teleop",
+        name="web_teleop",
+        output="screen",
+        parameters=[{"pad_topic": f"/{ROBOT_NAME}/teleop/pad", "cmd_vel_topic": f"/{ROBOT_NAME}/actuators/cmd_vel"}],
+    )
+
     # The track as a 3D marker, for viewers outside Gazebo (Foxglove, RViz)
     track_visual = Node(package=PACKAGE, executable="track_visual", name="track_visual", output="screen")
 
@@ -147,6 +156,7 @@ def generate_launch_description():
             odometry_tf,
             camera_points,
             lidar_filter,
+            web_teleop,
             track_visual,
         ]
     )

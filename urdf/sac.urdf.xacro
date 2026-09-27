@@ -72,9 +72,12 @@
        the roof (measured); the lidar frame is its optical centre, 37.7 mm above the base -->
   <xacro:property name="lidar_base_above_roof" value="0.20" />
   <xacro:property name="lidar_xyz" value="0 0 ${roof_z + lidar_base_above_roof - rack_top_z + 0.0377}" />
-  <!-- GNSS antennas at both ends of the front bar; the simulated receiver uses the left one -->
+  <!-- Two GNSS antennas at opposite corners of the rack: front right and rear left -->
+  <xacro:property name="rack_rear" value="${rack_rear_x - rack_mid_x}" />    <!-- rear bar, in the rack frame -->
   <xacro:property name="gnss_antenna_y" value="${rack_half_width - 0.03}" />
-  <xacro:property name="gnss_xyz" value="${rack_front} ${gnss_antenna_y} 0.07" />
+  <xacro:property name="gnss_front_right_xy" value="${rack_front} ${-gnss_antenna_y}" />
+  <xacro:property name="gnss_rear_left_xy" value="${rack_rear} ${gnss_antenna_y}" />
+  <xacro:property name="gnss_antenna_z" value="0.07" />   <!-- antenna phase centre above the rack -->
   <!-- Three IMUs on the chassis, on the centre line (not measured): in the middle of the
        car, over the front axle and over the rear axle -->
   <xacro:property name="middle_imu_xyz" value="0 0 0.5" />
@@ -201,7 +204,7 @@
   <xacro:roof_rack parent_link="link_chassis" roof_z="${rack_base_z}" front_x="${rack_front_x}"
     rear_x="${rack_rear_x}" half_width="${rack_half_width}" clearance="${rack_clearance}"
     profile="${rack_profile}" post_height="${roof_z + lidar_base_above_roof - rack_top_z}"
-    antenna_y="${gnss_antenna_y}" />
+    antenna1_xy="${gnss_front_right_xy}" antenna2_xy="${gnss_rear_left_xy}" />
 
   <xacro:zed2 name="front_camera" parent_link="roof_rack" namespace="$(arg namespace)">
     <origin xyz="${camera_xyz}" rpy="0 ${camera_pitch} 0" />
@@ -219,9 +222,12 @@
     <origin xyz="${back_imu_xyz}" rpy="0 0 0" />
   </xacro:imu>
 
-  <!-- 10 Hz like a typical GNSS receiver -->
-  <xacro:navsat name="navsat" parent_link="roof_rack" namespace="$(arg namespace)" update_rate="10">
-    <origin xyz="${gnss_xyz}" rpy="0 0 0" />
+  <!-- One fix per antenna at 10 Hz; the heading follows from the two positions -->
+  <xacro:navsat name="navsat_front_right" parent_link="roof_rack" namespace="$(arg namespace)" update_rate="10">
+    <origin xyz="${gnss_front_right_xy} ${gnss_antenna_z}" rpy="0 0 0" />
+  </xacro:navsat>
+  <xacro:navsat name="navsat_rear_left" parent_link="roof_rack" namespace="$(arg namespace)" update_rate="10">
+    <origin xyz="${gnss_rear_left_xy} ${gnss_antenna_z}" rpy="0 0 0" />
   </xacro:navsat>
 
   <xacro:lidar3d name="roof_lidar" parent_link="roof_rack" namespace="$(arg namespace)">
