@@ -3,16 +3,32 @@
 <package format="3">
   <name>gazebo_environment</name>
   <version>1.0.0</version>
-  <description>TODO: Package description</description>
+  <description>
+    Gazebo Harmonic simulation of the SAC Ackermann car (RGB-D camera, 3D lidar, IMU, GNSS)
+    on the Sonoma Raceway, with the ROS 2 bridge and a track model for web viewers.
+  </description>
   <maintainer email="yahmetakdal@gmail.com">nuke</maintainer>
   <license>TODO: License declaration</license>
 
-  <depend>rclpy</depend>
-  <depend>urdf</depend>
-  <depend>xacro</depend>
-  <!-- track_visual; it also needs the trimesh Python package (pip install trimesh) -->
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>urdf</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>ros_gz_sim</exec_depend>
+  <exec_depend>ros_gz_bridge</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>depth_image_proc</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>visualization_msgs</exec_depend>
+  <!-- track_visual; it also needs the trimesh Python package (pip install trimesh) -->
   <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-pil</exec_depend>
+  <!-- rviz.launch.py only -->
+  <exec_depend>joint_state_publisher_gui</exec_depend>
+  <exec_depend>rviz2</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

@@ -1,76 +1,74 @@
 <?xml version="1.0"?>
+<!--
+  3D lidar (GPU ray casting) on a fixed link, publishing a point cloud.
+  Needs the Sensors system in the world.
+
+  The visual is a Velodyne VLP-16, but the beam pattern below is not a VLP-16 (that has
+  16 channels over +-15 deg). Set it to the real lidar's values.
+-->
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <!-- 3D LiDAR macro -->
-  <xacro:macro name="lidar3d" params="name parent_link *origin namespace update_rate:=10">
-    <xacro:include
-      filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
+    <xacro:property name="lidar_horizontal_samples" value="360" />
+    <xacro:property name="lidar_vertical_samples" value="40" />
+    <xacro:property name="lidar_vertical_half_angle" value="0.186" />  <!-- [rad] -->
+    <xacro:property name="lidar_min_range" value="0.5" />
+    <xacro:property name="lidar_max_range" value="100.0" />
 
-    <!-- LiDAR base frame -->
-    <xacro:property name="base_frame" value="${name}_lidar_frame" />
+    <xacro:macro name="lidar3d" params="name parent_link *origin namespace update_rate:=10">
+        <xacro:property name="base_frame" value="${name}_lidar_frame" />
 
-    <joint name="${name}_lidar_joint" type="fixed">
-      <parent link="${parent_link}" />
-      <child link="${base_frame}" />
-      <xacro:insert_block name="origin" />
-    </joint>
+        <joint name="${name}_lidar_joint" type="fixed">
+            <parent link="${parent_link}" />
+            <child link="${base_frame}" />
+            <xacro:insert_block name="origin" />
+        </joint>
 
-    <link name="${base_frame}">
-      <xacro:cuboid_inertia mass="1.0" x="0.01" y="0.01" z="0.01" />
-      <visual>
-        <origin xyz="0 0 0" rpy="1.57 0 3.14"/>
-        <geometry>
-            <mesh
-                filename="$(find gazebo_environment)/meshes/velodyne-vlp16.stl"
-                scale="0.002 0.002 0.002" />
-        </geometry>
-      </visual>
-    </link>
+        <link name="${base_frame}">
+            <xacro:inertial_dummy />
+            <visual>
+                <!-- The mesh is Y-up and in millimetres -->
+                <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi}" />
+                <geometry>
+                    <mesh filename="package://gazebo_environment/meshes/velodyne-vlp16.stl" scale="0.002 0.002 0.002" />
+                </geometry>
+            </visual>
+        </link>
 
-    <gazebo reference="${base_frame}">
-        <sensor name="${name}_lidar_sensor" type="gpu_lidar">        
-            <always_on>true</always_on>
-            <visualize>true</visualize>
-            <update_rate>${update_rate}</update_rate>
-              <!-- frame_id için (ROS’ta header.frame_id) -->
-            <gz_frame_id>${base_frame}</gz_frame_id>
-                <!-- ROS tarafına köprülenecek point cloud topic -->
-            <topic>${namespace}/sensors/${name}</topic>
+        <gazebo reference="${base_frame}">
+            <sensor name="${name}_lidar_sensor" type="gpu_lidar">
+                <always_on>true</always_on>
+                <update_rate>${update_rate}</update_rate>
+                <gz_frame_id>${base_frame}</gz_frame_id>
+                <topic>${namespace}/sensors/${name}</topic>
+                <lidar>
+                    <scan>
+                        <horizontal>
+                            <samples>${lidar_horizontal_samples}</samples>
+                            <min_angle>${-pi}</min_angle>
+                            <max_angle>${pi}</max_angle>
+                        </horizontal>
+                        <vertical>
+                            <samples>${lidar_vertical_samples}</samples>
+                            <min_angle>${-lidar_vertical_half_angle}</min_angle>
+                            <max_angle>${lidar_vertical_half_angle}</max_angle>
+                        </vertical>
+                    </scan>
+                    <range>
+                        <min>${lidar_min_range}</min>
+                        <max>${lidar_max_range}</max>
+                        <resolution>0.01</resolution>
+                    </range>
+                    <noise>
+                        <type>gaussian</type>
+                        <mean>0.0</mean>
+                        <stddev>0.01</stddev>
+                    </noise>
+                </lidar>
+            </sensor>
+        </gazebo>
 
-          <lidar>
-            <scan>
-              <horizontal>
-                  <samples>360</samples>
-                  <min_angle>-3.14</min_angle>
-                  <max_angle>3.14</max_angle>
-              </horizontal>
-              <vertical>
-                  <samples>40</samples>
-                  <min_angle>-0.186</min_angle>
-                  <max_angle>0.186</max_angle>
-              </vertical>
-          </scan>
-
-            <range>
-              <min>0.5</min>
-              <max>100.0</max>
-              <resolution>0.01</resolution>
-            </range>
-                  <noise>
-                    <type>gaussian</type>
-                    <mean>0.0</mean>
-                    <stddev>0.01</stddev>
-            </noise>
-          </lidar>
-        </sensor>
-    </gazebo>
-
-
-
-    <!-- Fixed joint’in world’e taşınmasını engellemek için, istersen lidar_joint için de preserve ekleyebilirsin -->
-    <gazebo reference="${name}_lidar_joint">
-      <preserveFixedJoint>true</preserveFixedJoint>
-    </gazebo>
-
-  </xacro:macro>
+        <gazebo reference="${name}_lidar_joint">
+            <preserveFixedJoint>true</preserveFixedJoint>
+        </gazebo>
+    </xacro:macro>
 </robot>

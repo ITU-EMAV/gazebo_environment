@@ -1,15 +1,11 @@
 <?xml version="1.0"?>
+<!-- GNSS receiver (navsat) on a fixed link. Needs the NavSat system in the world and
+     <spherical_coordinates> in the world for real latitude/longitude. -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-    <xacro:macro name="navsat" params="name parent_link *origin namespace update_rate:=1">
-        <xacro:include
-            filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
-
-
-
+    <xacro:macro name="navsat" params="name parent_link *origin namespace update_rate:=10">
         <xacro:property name="base_frame" value="${name}_navsat_frame" />
 
-        <!-- Base frame -->
         <joint name="${name}_navsat_joint" type="fixed">
             <parent link="${parent_link}" />
             <child link="${base_frame}" />
@@ -17,33 +13,20 @@
         </joint>
 
         <link name="${base_frame}">
-                <xacro:cuboid_inertia mass="1.0" x="0.01" y="0.01" z="0.01" />
+            <xacro:inertial_dummy />
         </link>
-
-
-        <!-- Gazebo links and joints -->
-
-
-        <gazebo>
-            <plugin
-            filename="ignition-gazebo-navsat-system"
-            name="ignition::gazebo::systems::NavSat">
-            </plugin>
-        </gazebo>
 
         <gazebo reference="${base_frame}">
             <sensor name="navsat_sensor" type="navsat">
-            <always_on>1</always_on>
-            <update_rate>${update_rate}</update_rate>
-            <topic>${namespace}/sensors/${name}/navsat</topic>
-            <gz_frame_id>${base_frame}</gz_frame_id> 
+                <always_on>1</always_on>
+                <update_rate>${update_rate}</update_rate>
+                <topic>${namespace}/sensors/${name}/navsat</topic>
+                <gz_frame_id>${base_frame}</gz_frame_id>
             </sensor>
         </gazebo>
 
         <gazebo reference="${name}_navsat_joint">
             <preserveFixedJoint>true</preserveFixedJoint>
         </gazebo>
-
-
     </xacro:macro>
 </robot>

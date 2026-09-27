@@ -218,7 +218,7 @@ Visualization Manager:
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: link_chassis
+    Fixed Frame: base_footprint
     Frame Rate: 60
   Name: root
   Tools:

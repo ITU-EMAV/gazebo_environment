@@ -1,250 +1,191 @@
 <?xml version="1.0"?>
+<!--
+  SAC: Ackermann-steered car with a front RGB-D camera, a 3D lidar, an IMU and a GNSS
+  receiver, for Gazebo Harmonic.
 
+  All dimensions and limits are properties below, so the model can be matched to the real
+  car in one place. Values marked "not measured" are placeholders.
+
+  Frames (REP 103/105): x forward, y left, z up. base_footprint lies on the ground under
+  the middle of the car; wheels turn in the positive direction when the car drives forward.
+
+  The world must load the Sensors, Imu and NavSat systems (see worlds/sonoma.sdf).
+-->
 <robot name="$(arg namespace)" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <xacro:arg name="namespace" default=""/>
+  <xacro:arg name="namespace" default="sac" />
+
+  <xacro:include filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/imu.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/navsat.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/camera.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/lidar3d.urdf.xacro" />
-  <xacro:include filename="$(find gazebo_environment)/urdf/common_properties.urdf.xacro" />
-  
-  <link name="base_footprint">
-      
-  </link>
+
+  <!-- ===================== Vehicle parameters (not measured) ===================== -->
+  <xacro:property name="wheel_base" value="1.8" />        <!-- front axle to rear axle [m] -->
+  <xacro:property name="track_width" value="1.28" />      <!-- left to right wheel centre [m] -->
+  <xacro:property name="wheel_radius" value="0.25" />
+  <xacro:property name="wheel_width" value="0.15" />
+  <xacro:property name="wheel_mass" value="11.0" />
+  <xacro:property name="steering_limit" value="0.8" />    <!-- [rad] -->
+
+  <!-- Body, used for collisions and inertia; matches the size of the visual mesh -->
+  <xacro:property name="body_length" value="2.6" />
+  <xacro:property name="body_width" value="1.5" />
+  <xacro:property name="body_bottom" value="0.125" />     <!-- ground clearance [m] -->
+  <xacro:property name="body_top" value="1.44" />
+  <xacro:property name="body_mass" value="500.0" />
+
+  <xacro:property name="max_speed" value="20.0" />        <!-- [m/s] forward -->
+  <xacro:property name="max_reverse_speed" value="10.0" />
+  <xacro:property name="max_acceleration" value="5.0" />  <!-- [m/s^2] -->
+
+  <!-- Sensor mounts, relative to base_footprint / link_chassis (same origin; not measured) -->
+  <!-- Front camera at the top of the windshield, tilted down to see the road -->
+  <xacro:property name="camera_xyz" value="0.5 0 1.35" />
+  <xacro:property name="camera_pitch" value="0.2" />      <!-- [rad], positive tilts down -->
+  <xacro:property name="lidar_xyz" value="-0.3 0 1.6" />
+  <xacro:property name="imu_xyz" value="0 0 0.6" />       <!-- about the centre of mass -->
+  <xacro:property name="gnss_xyz" value="0 0 1.44" />     <!-- antenna on the roof -->
+
+  <!-- ============================== Body ============================== -->
+  <link name="base_footprint" />
 
   <joint name="joint_base_footprint_base_link" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0 0" />
-    <child link="base_link" />
     <parent link="base_footprint" />
+    <child link="base_link" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
   </joint>
 
-
   <link name="base_link">
-    <xacro:cuboid_inertia mass="1.0" x="0.1" y="0.1" z="0.1" />
+    <xacro:inertial_dummy />
   </link>
 
   <joint name="joint_base_link_chassis" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0 0" />
-    <child link="link_chassis" />
     <parent link="base_link" />
+    <child link="link_chassis" />
+    <origin xyz="0 0 0" rpy="0 0 0" />
   </joint>
+
+  <xacro:property name="body_height" value="${body_top - body_bottom}" />
+  <xacro:property name="body_center_z" value="${(body_top + body_bottom) / 2}" />
 
   <link name="link_chassis">
     <visual name="chassis_visual">
-      <origin rpy="1.57 0 1.57" xyz="0 0 0" />
+      <!-- The mesh is Y-up and in centimetres -->
+      <origin xyz="0 0 0" rpy="${pi/2} 0 ${pi/2}" />
       <geometry>
-        <mesh filename="package://gazebo_environment/meshes/smart_car.obj"
-          scale="0.012 0.012
-        0.013" />
+        <mesh filename="package://gazebo_environment/meshes/smart_car.obj" scale="0.012 0.012 0.013" />
       </geometry>
       <material name="white">
-        <lighting>true</lighting>
-        <cast_shadows>true</cast_shadows>
-        <receive_shadows>true</receive_shadows>
         <color rgba="0.9 0.9 0.9 1.0" />
       </material>
     </visual>
 
     <collision>
-      <origin xyz="0 0 0.625" rpy="0 0 0" />
+      <origin xyz="0 0 ${body_center_z}" rpy="0 0 0" />
       <geometry>
-        <box size="2.4 1.0 1.0" />
+        <box size="${body_length} ${body_width} ${body_height}" />
       </geometry>
     </collision>
 
-    <xacro:inertial_cuboid_with_pose mass="500.0" x="2.4" y="1.0" z="1.0">
-      <origin xyz="0 0 0.625" rpy="0 0 0" />
+    <xacro:inertial_cuboid_with_pose mass="${body_mass}" x="${body_length}" y="${body_width}" z="${body_height}">
+      <origin xyz="0 0 ${body_center_z}" rpy="0 0 0" />
     </xacro:inertial_cuboid_with_pose>
   </link>
 
-  <link name="rear_left_wheel">
+  <!-- ============================== Wheels ============================== -->
+  <xacro:property name="max_wheel_speed" value="${max_speed / wheel_radius * 1.2}" />  <!-- [rad/s] -->
 
-    <xacro:inertial_cylinder mass="11.0" radius="0.25" length="0.15" />
+  <!-- The joint frame is turned so that its z axis points to the car's left (+y):
+       positive rotation about it rolls the car forward. -->
+  <xacro:macro name="wheel_link" params="name">
+    <link name="${name}">
+      <xacro:inertial_cylinder mass="${wheel_mass}" radius="${wheel_radius}" length="${wheel_width}" />
+      <visual name="${name}_visual">
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}" />
+        </geometry>
+        <material name="black">
+          <color rgba="0.1 0.1 0.1 1" />
+        </material>
+      </visual>
+      <!-- A sphere touches the ground in a single point, which is steadier than a
+           cylinder's edge in the physics engine -->
+      <collision>
+        <geometry>
+          <sphere radius="${wheel_radius}" />
+        </geometry>
+      </collision>
+    </link>
+    <gazebo reference="${name}">
+      <mu1>1.1</mu1>
+      <mu2>1.1</mu2>
+    </gazebo>
+  </xacro:macro>
 
-    <visual name="rear_left_wheel_visual">
-      <geometry>
-        <cylinder radius="0.25" length="0.15" />
-      </geometry>
-      <material name="Black">
-        <color rgba="0.1 0.1 0.1 1" />
-      </material>
-    </visual>
+  <xacro:macro name="rear_wheel" params="side y">
+    <xacro:wheel_link name="rear_${side}_wheel" />
+    <joint name="rear_${side}_wheel_joint" type="continuous">
+      <parent link="link_chassis" />
+      <child link="rear_${side}_wheel" />
+      <origin xyz="${-wheel_base / 2} ${y} ${wheel_radius}" rpy="${-pi/2} 0 0" />
+      <axis xyz="0 0 1" />
+      <limit effort="1000" velocity="${max_wheel_speed}" />
+    </joint>
+  </xacro:macro>
 
-    <collision>
-      <geometry>
-        <sphere radius="0.25" />
-      </geometry>
-    </collision>
+  <xacro:macro name="front_wheel" params="side y">
+    <!-- 1 kg: a much lighter link between two joints makes the physics unsteady -->
+    <link name="front_${side}_wheel_steering_link">
+      <xacro:inertial_cuboid mass="1.0" x="0.1" y="0.1" z="0.1" />
+    </link>
+    <!-- Same frame as the wheel joint, so the steering axis is its -y (the car's up) -->
+    <joint name="front_${side}_wheel_steering_joint" type="revolute">
+      <parent link="link_chassis" />
+      <child link="front_${side}_wheel_steering_link" />
+      <origin xyz="${wheel_base / 2} ${y} ${wheel_radius}" rpy="${-pi/2} 0 0" />
+      <axis xyz="0 -1 0" />
+      <limit effort="1000" velocity="10" lower="${-steering_limit}" upper="${steering_limit}" />
+    </joint>
 
-  </link>
+    <xacro:wheel_link name="front_${side}_wheel" />
+    <joint name="front_${side}_wheel_rotating_joint" type="continuous">
+      <parent link="front_${side}_wheel_steering_link" />
+      <child link="front_${side}_wheel" />
+      <origin xyz="0 0 0" rpy="0 0 0" />
+      <axis xyz="0 0 1" />
+      <limit effort="1000" velocity="${max_wheel_speed}" />
+    </joint>
+  </xacro:macro>
 
+  <xacro:rear_wheel side="left" y="${track_width / 2}" />
+  <xacro:rear_wheel side="right" y="${-track_width / 2}" />
+  <xacro:front_wheel side="left" y="${track_width / 2}" />
+  <xacro:front_wheel side="right" y="${-track_width / 2}" />
 
-  <joint type="revolute" name="rear_left_wheel_joint">
-    <origin rpy="1.56 0 0" xyz="-0.9 0.64 0.25" />
-    <child link="rear_left_wheel" />
-    <parent link="link_chassis" />
-    <axis rpy="0 0 0" xyz="0 0 1" />
-    <limit lower="-1.79769e+308" upper="1.79769e+308"
-      effort="100000" velocity="1000" />
-  </joint>
-
-
-  <!-- Rear Right Wheel -->
-  <link name="rear_right_wheel">
-    <xacro:inertial_cylinder mass="11.0" radius="0.25" length="0.15" />
-    <visual name="rear_right_wheel_visual">
-      <geometry>
-        <cylinder radius="0.25" length="0.15" />
-      </geometry>
-      <material name="Black">
-        <color rgba="0.1 0.1 0.1 1" />
-      </material>
-    </visual>
-
-    <collision>
-      <geometry>
-        <sphere radius="0.25" />
-      </geometry>
-    </collision>
-  </link>
-
-  <joint type="revolute" name="rear_right_wheel_joint">
-    <origin rpy="1.56 0 0" xyz="-0.9 -0.64 0.25" />
-    <child link="rear_right_wheel" />
-    <parent link="link_chassis" />
-    <axis rpy="0 0 0" xyz="0 0 1" />
-    <limit lower="-1.79769e+308" upper="1.79769e+308"
-      effort="100000" velocity="1000" />
-  </joint>
-
-
-  <!-- Front Left Wheel -->
-  <link name="front_left_wheel">
-    <xacro:inertial_cylinder mass="11.0" radius="0.25" length="0.15" />
-
-    <visual name="front_left_wheel_visual">
-      <geometry>
-        <cylinder radius="0.25" length="0.15" />
-      </geometry>
-      <material name="Black">
-        <color rgba="0.1 0.1 0.1 1" />
-      </material>
-    </visual>
-
-    <collision>
-      <geometry>
-        <sphere radius="0.25" />
-      </geometry>
-    </collision>
-  </link>
-
-  <link name="front_left_wheel_steering_link">
-    <xacro:cuboid_inertia mass="1.0" x="0.1" y="0.1" z="0.1" />
-  </link>
-
-  <joint type="revolute" name="front_left_wheel_steering_joint">
-    <origin rpy="-1.56 0 0" xyz="0.9 0.64 0.25" />
-    <child link="front_left_wheel_steering_link" />
-    <parent link="link_chassis" />
-    <axis rpy="0 0 0" xyz="0 -1 0" />
-    <limit effort="100000" velocity="1000" upper="0.8727" lower="-0.8727" />
-  </joint>
-
-  <joint type="revolute" name="front_left_wheel_rotating_joint">
-    <origin rpy="0 0 0" xyz="0 0 0" />
-    <child link="front_left_wheel" />
-    <parent link="front_left_wheel_steering_link" />
-    <axis rpy="0 0 0" xyz="0 0 1" />
-    <limit lower="-1.79769e+308" upper="1.79769e+308" effort="100" velocity="20" />
-  </joint>
-
-  <!-- Front Right Wheel -->
-  <link name="front_right_wheel">
-    <xacro:inertial_cylinder mass="11.0" radius="0.25" length="0.15" />
-
-    <visual name="front_right_wheel_visual">
-      <geometry>
-        <cylinder radius="0.25" length="0.15" />
-      </geometry>
-      <material name="Black">
-        <color rgba="0.1 0.1 0.1 1" />
-      </material>
-    </visual>
-
-    <collision>
-      <geometry>
-        <sphere radius="0.25" />
-      </geometry>
-    </collision>
-  </link>
-
-  <link name="front_right_wheel_steering_link">
-    <xacro:cuboid_inertia mass="1.0" x="0.1" y="0.1" z="0.1" />
-
-  </link>
- 
-  <joint type="revolute" name="front_right_wheel_steering_joint">
-    <origin rpy="-1.56 0 0" xyz="0.9 -0.64 0.25" />
-    <child link="front_right_wheel_steering_link" />
-    <parent link="link_chassis" />
-    <axis rpy="0 0 0" xyz="0 -1 0" />
-    <limit effort="100000" velocity="1000" upper="0.8727" lower="-0.8727" />
-  </joint>
-
-  <joint type="revolute" name="front_right_wheel_rotating_joint">
-    <origin rpy="0 0 0" xyz="0 0 0" />
-    <child link="front_right_wheel" />
-    <parent link="front_right_wheel_steering_link" />
-    <axis rpy="0 0 0" xyz="0 0 1" />
-    <limit lower="-1.79769e+308" upper="1.79769e+308" effort="100" velocity="20" />
-  </joint>
-
-<!-- Camera Plugin -->
+  <!-- ============================== Sensors ============================== -->
   <xacro:camera name="front_camera" parent_link="link_chassis" namespace="$(arg namespace)">
-    <origin xyz="2 0 3" rpy="0.0 0.9 0.0" />
+    <origin xyz="${camera_xyz}" rpy="0 ${camera_pitch} 0" />
   </xacro:camera>
 
-<!-- IMU Plugin -->
   <xacro:imu name="middle_imu" parent_link="link_chassis" namespace="$(arg namespace)">
-    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <origin xyz="${imu_xyz}" rpy="0 0 0" />
   </xacro:imu>
 
-<!-- NavSat Plugin -->
-  <!-- 10 Hz like a typical GNSS receiver; at 1 Hz a map view barely moves -->
+  <!-- 10 Hz like a typical GNSS receiver -->
   <xacro:navsat name="navsat" parent_link="link_chassis" namespace="$(arg namespace)" update_rate="10">
-    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+    <origin xyz="${gnss_xyz}" rpy="0 0 0" />
   </xacro:navsat>
 
-<!-- 3D Lidar Plugin -->
   <xacro:lidar3d name="front_3d_lidar" parent_link="link_chassis" namespace="$(arg namespace)">
-    <origin xyz="-0.3 0.0 1.6" rpy="0 0 0" />
+    <origin xyz="${lidar_xyz}" rpy="0 0 0" />
   </xacro:lidar3d>
 
-
-
-  <!-- Wheel friction (URDF has no friction element; Gazebo reads it from here) -->
-  <gazebo reference="rear_left_wheel">
-    <mu1>1.1</mu1>
-    <mu2>1.1</mu2>
-  </gazebo>
-  <gazebo reference="rear_right_wheel">
-    <mu1>1.1</mu1>
-    <mu2>1.1</mu2>
-  </gazebo>
-  <gazebo reference="front_left_wheel">
-    <mu1>1.1</mu1>
-    <mu2>1.1</mu2>
-  </gazebo>
-  <gazebo reference="front_right_wheel">
-    <mu1>1.1</mu1>
-    <mu2>1.1</mu2>
-  </gazebo>
-
+  <!-- ============================== Gazebo systems ============================== -->
   <!-- Ground truth pose of the whole model, used by the odometry_tf node -->
   <gazebo>
-    <plugin filename="gz-sim-pose-publisher-system"
-      name="gz::sim::systems::PosePublisher">
+    <plugin filename="gz-sim-pose-publisher-system" name="gz::sim::systems::PosePublisher">
       <topic>$(arg namespace)/ground_truth/pose</topic>
       <publish_model_pose>true</publish_model_pose>
       <publish_link_pose>false</publish_link_pose>
@@ -252,48 +193,37 @@
     </plugin>
   </gazebo>
 
-  <!-- Joint states plugin -->
+  <!-- 50 Hz instead of every physics step, which only loaded robot_state_publisher -->
   <gazebo>
-    <!-- 50 Hz instead of every physics step (500 Hz), which only loaded
-         robot_state_publisher -->
-    <plugin filename="ignition-gazebo-joint-state-publisher-system"
-      name="ignition::gazebo::systems::JointStatePublisher">
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
       <update_rate>50</update_rate>
     </plugin>
   </gazebo>
 
-
-  <!-- Ackermann steering plugin -->
+  <!-- Front-wheel drive and steering from /<namespace>/actuators/cmd_vel -->
   <gazebo>
-    <plugin filename="ignition-gazebo-ackermann-steering-system"
-      name="ignition::gazebo::systems::AckermannSteering">
+    <plugin filename="gz-sim-ackermann-steering-system" name="gz::sim::systems::AckermannSteering">
       <topic>$(arg namespace)/actuators/cmd_vel</topic>
-      <odom_publish_frequency>10</odom_publish_frequency>
-      <odom_topic>$(arg namespace)/calculations/steering_odom</odom_topic>
       <left_joint>front_left_wheel_rotating_joint</left_joint>
       <right_joint>front_right_wheel_rotating_joint</right_joint>
       <left_steering_joint>front_left_wheel_steering_joint</left_steering_joint>
       <right_steering_joint>front_right_wheel_steering_joint</right_steering_joint>
-      <!-- Must match the wheel joints and geometry above -->
-      <kingpin_width>1.28</kingpin_width>
-      <steering_limit>0.8</steering_limit>
-      <wheel_base>1.8</wheel_base>
-      <wheel_separation>1.28</wheel_separation>
-      <wheel_radius>0.25</wheel_radius>
-      <min_velocity>-10</min_velocity>
-      <max_velocity>100</max_velocity>
-      <min_acceleration>-30</min_acceleration>
-      <max_acceleration>30</max_acceleration>
+      <kingpin_width>${track_width}</kingpin_width>
+      <steering_limit>${steering_limit}</steering_limit>
+      <wheel_base>${wheel_base}</wheel_base>
+      <wheel_separation>${track_width}</wheel_separation>
+      <wheel_radius>${wheel_radius}</wheel_radius>
+      <min_velocity>${-max_reverse_speed}</min_velocity>
+      <max_velocity>${max_speed}</max_velocity>
+      <min_acceleration>${-max_acceleration}</min_acceleration>
+      <max_acceleration>${max_acceleration}</max_acceleration>
 
+      <odom_publish_frequency>10</odom_publish_frequency>
+      <odom_topic>$(arg namespace)/calculations/steering_odom</odom_topic>
       <tf_topic>$(arg namespace)/tf/steering_odom</tf_topic>
       <frame_id>steering_odom</frame_id>
       <child_frame_id>base_footprint</child_frame_id>
     </plugin>
   </gazebo>
-
-
-
- 
-
 
 </robot>

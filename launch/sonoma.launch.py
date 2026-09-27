@@ -1,67 +1,80 @@
+"""Sonoma Raceway with the SAC car: Gazebo, robot_state_publisher, the ROS bridge,
+the world -> base_footprint TF and the track model for web viewers.
+
+Arguments:
+  gui:=false         only the Gazebo server with headless rendering (no window)
+  world:=<args>      Gazebo arguments, default "-r <share>/worlds/sonoma.sdf"
+  x, y, z, yaw       where the car starts (default: the start/finish line)
+"""
+
 import os
+
 from ament_index_python.packages import get_package_prefix, get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription, SetEnvironmentVariable, TimerAction
-from launch.substitutions import PathJoinSubstitution, LaunchConfiguration, Command
+from launch.actions import (
+    DeclareLaunchArgument,
+    GroupAction,
+    IncludeLaunchDescription,
+    SetEnvironmentVariable,
+)
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
+
+PACKAGE = "gazebo_environment"
+ROBOT_NAME = "sac"  # also used in config/bridge.yaml
+# On the start/finish line, facing along the track
+START_POSE = {"x": "277.88", "y": "-135.2", "z": "3.0", "yaw": "-0.66"}
 
 
 def generate_launch_description():
-    package_description = "gazebo_environment"
-    package_directory = get_package_share_directory(package_description)
+    package_directory = get_package_share_directory(PACKAGE)
+    set_resource_path()
 
-    # Set the Path to Robot Mesh Models for Loading in Gazebo Sim
-    install_dir_path = get_package_prefix(package_description) + "/share"
+    world_file = os.path.join(package_directory, "worlds", "sonoma.sdf")
+    world = LaunchConfiguration("world")
+    gui = LaunchConfiguration("gui")
+    arguments = [
+        DeclareLaunchArgument(
+            "world", default_value=["-r ", world_file], description="Gazebo arguments and world file"
+        ),
+        # Headless still renders the sensors, it only skips the window
+        DeclareLaunchArgument("gui", default_value="true", description="Open the Gazebo window"),
+    ] + [
+        DeclareLaunchArgument(name, default_value=value, description=f"Start pose: {name}")
+        for name, value in START_POSE.items()
+    ]
 
-    robot_meshes_path = os.path.join(package_directory, "meshes")
-    
-    gazebo_resource_paths = [install_dir_path, robot_meshes_path]
-    # Gazebo Harmonic reads GZ_SIM_RESOURCE_PATH; IGN_GAZEBO_RESOURCE_PATH is kept for
-    # older versions. They resolve package://gazebo_environment/... in the URDF.
-    for variable in ("GZ_SIM_RESOURCE_PATH", "IGN_GAZEBO_RESOURCE_PATH"):
-        if variable in os.environ:
-            for resource_path in gazebo_resource_paths:
-                if resource_path not in os.environ[variable]:
-                    os.environ[variable] += ":" + resource_path
-        else:
-            os.environ[variable] = ":".join(gazebo_resource_paths)
-
-    # Load Demo World SDF from Robot Description Package
-    world = "sonoma"
-    robot_name = "sac"
-
-    world_file = f"{world}.sdf"
-    world_file_path = os.path.join(package_directory, "worlds", world_file)
-    world_config = LaunchConfiguration("world")
-    declare_world_arg = DeclareLaunchArgument(
-        "world", default_value=["-r ", world_file_path], description="SDF World File"
+    # value_type=str: otherwise the URDF text is parsed as YAML, and a ":" in it breaks that
+    robot_description = ParameterValue(
+        Command(["xacro ", os.path.join(package_directory, "urdf", "sac.urdf.xacro"), f" namespace:={ROBOT_NAME}"]),
+        value_type=str,
+    )
+    robot_state_publisher = Node(
+        package="robot_state_publisher",
+        executable="robot_state_publisher",
+        name="robot_state_publisher",
+        output="screen",
+        parameters=[{"use_sim_time": True, "robot_description": robot_description}],
     )
 
-    # gui:=false runs only the Gazebo server with headless rendering (no window, no
-    # display needed); the sensors are still rendered.
-    gui_config = LaunchConfiguration("gui")
-    declare_gui_arg = DeclareLaunchArgument(
-        "gui", default_value="true", description="Open the Gazebo GUI"
+    # Spawns the model robot_state_publisher publishes, so xacro runs only once
+    spawn = Node(
+        package="ros_gz_sim",
+        executable="create",
+        name="spawn_sac",
+        output="screen",
+        arguments=[
+            "-topic", "robot_description",
+            "-name", ROBOT_NAME,
+            "-x", LaunchConfiguration("x"),
+            "-y", LaunchConfiguration("y"),
+            "-z", LaunchConfiguration("z"),
+            "-Y", LaunchConfiguration("yaw"),
+        ],
     )
-
-    # Declare Gazebo Sim Launch file
-    gz_sim = create_world(world_config, gui_config)
-    
-
-    # Load the urdf
-    urdf_file = "sac.urdf.xacro"
-    robot_desc_path = os.path.join(package_directory, "urdf", urdf_file)
-
-    robot_state_publisher_node = decleare_entity(robot_name,robot_desc_path)
-
-    xyz = [277.88,-135.2,3.0]
-    rpy = [0.0,0.02,-0.66]
-
-    gz_spawn_entity = spawn_entity(robot_name,robot_desc_path,xyz,rpy)
-    
-
 
     # All Gazebo <-> ROS topics in one process; sensors are bridged lazily (see the yaml).
     # The bridge takes message stamps from Gazebo, so it does not need /clock.
@@ -69,128 +82,98 @@ def generate_launch_description():
         package="ros_gz_bridge",
         executable="parameter_bridge",
         name="gz_bridge",
-        parameters=[{"config_file": os.path.join(package_directory, "config", "bridge.yaml")}],
         output="screen",
+        parameters=[{"config_file": os.path.join(package_directory, "config", "bridge.yaml")}],
     )
 
-    # Stamps come from the pose message itself, so it does not need /clock either.
+    # world -> base_footprint from Gazebo's ground truth pose; stamps come from the
+    # pose message itself, so it does not need /clock either
     odometry_tf = Node(
-        package="gazebo_environment",
+        package=PACKAGE,
         executable="odometry_tf",
         name="odometry_tf",
         output="screen",
-        parameters=[{"pose_topic": f"/{robot_name}/ground_truth/pose"}],
+        parameters=[{"pose_topic": f"/{ROBOT_NAME}/ground_truth/pose"}],
+    )
+
+    # Camera point cloud from the depth image, in the optical frame like the real camera's
+    # driver. Gazebo's own RGB-D cloud uses x-forward axes under an optical frame_id.
+    # Only runs while something subscribes to the points.
+    camera_points = Node(
+        package="depth_image_proc",
+        executable="point_cloud_xyz_node",
+        name="front_camera_points",
+        output="screen",
+        remappings=[
+            ("image_rect", f"/{ROBOT_NAME}/sensors/front_camera/depth_image"),
+            ("camera_info", f"/{ROBOT_NAME}/sensors/front_camera/camera_info"),
+            ("points", f"/{ROBOT_NAME}/sensors/front_camera/points"),
+        ],
     )
 
     # The track as a 3D marker, for viewers outside Gazebo (Foxglove, RViz)
-    track_visual = Node(
-        package="gazebo_environment",
-        executable="track_visual",
-        name="track_visual",
-        output="screen",
-    )
+    track_visual = Node(package=PACKAGE, executable="track_visual", name="track_visual", output="screen")
 
     return LaunchDescription(
-        [
-            declare_world_arg,
-            declare_gui_arg,
-            gz_sim,
-
-            robot_state_publisher_node,
-            gz_spawn_entity,
-
+        arguments
+        + [
+            gazebo(world, gui),
+            robot_state_publisher,
+            spawn,
             bridge,
             odometry_tf,
+            camera_points,
             track_visual,
         ]
     )
-def create_world(world_config, gui_config):
-    gzsim_pkg = get_package_share_directory("ros_gz_sim")
+
+
+def set_resource_path():
+    """Let Gazebo resolve package://gazebo_environment/... from the URDF.
+
+    Gazebo Harmonic reads GZ_SIM_RESOURCE_PATH; IGN_GAZEBO_RESOURCE_PATH is for older
+    versions.
+    """
+    paths = [os.path.join(get_package_prefix(PACKAGE), "share")]
+    for variable in ("GZ_SIM_RESOURCE_PATH", "IGN_GAZEBO_RESOURCE_PATH"):
+        current = [p for p in os.environ.get(variable, "").split(":") if p]
+        os.environ[variable] = ":".join(current + [p for p in paths if p not in current])
+
+
+def gazebo(world, gui):
     gz_sim_launch = PythonLaunchDescriptionSource(
-        PathJoinSubstitution([gzsim_pkg, "launch", "gz_sim.launch.py"])
+        PathJoinSubstitution([get_package_share_directory("ros_gz_sim"), "launch", "gz_sim.launch.py"])
     )
 
     headless = IncludeLaunchDescription(
         gz_sim_launch,
-        launch_arguments={"gz_args": ["-s --headless-rendering ", world_config]}.items(),
-        condition=UnlessCondition(gui_config),
+        launch_arguments={"gz_args": ["-s --headless-rendering ", world]}.items(),
+        condition=UnlessCondition(gui),
     )
 
     if os.environ.get("GALLIUM_DRIVER") != "d3d12":
         with_gui = IncludeLaunchDescription(
             gz_sim_launch,
-            launch_arguments={"gz_args": world_config}.items(),
-            condition=IfCondition(gui_config),
+            launch_arguments={"gz_args": world}.items(),
+            condition=IfCondition(gui),
         )
         return GroupAction([headless, with_gui])
 
-    # Windows GPU (Mesa d3d12, see scripts/entrypoint.sh in Docker-Workspaces):
-    # the GUI aborts at random with "Out of GPU memory or driver refused" when it
-    # renders on d3d12, while the server's sensors render there reliably. Run the
-    # server on the GPU and the GUI in software.
+    # Windows GPU (Mesa d3d12, see scripts/entrypoint.sh in Docker-Workspaces): the GUI
+    # aborts at random with "Out of GPU memory or driver refused" when it renders on
+    # d3d12, while the server's sensors render there reliably. Run the server on the GPU
+    # and the GUI in software.
     server = IncludeLaunchDescription(
         gz_sim_launch,
-        launch_arguments={"gz_args": ["-s ", world_config]}.items(),
+        launch_arguments={"gz_args": ["-s ", world]}.items(),
     )
-    gui = GroupAction(
+    software_gui = GroupAction(
         [
             SetEnvironmentVariable("GALLIUM_DRIVER", "llvmpipe"),
-            IncludeLaunchDescription(
-                gz_sim_launch,
-                launch_arguments={"gz_args": "-g"}.items(),
-            ),
+            IncludeLaunchDescription(gz_sim_launch, launch_arguments={"gz_args": "-g"}.items()),
         ],
         scoped=True,
     )
-    return GroupAction([headless, GroupAction([server, gui], condition=IfCondition(gui_config))])
-
-def decleare_entity(name, robot_desc_path):
-    
-    robot_description = Command([
-        'xacro ', robot_desc_path, 
-        ' namespace:=' , name
-    ])
-
-    robot_state_publisher_node = Node(
-        package="robot_state_publisher",
-        executable="robot_state_publisher",
-        name=f"{name}_robot_state_publisher_node",
-        output="screen",
-        emulate_tty=True,
-        parameters=[
-            {
-                "use_sim_time": True,
-                "robot_description": robot_description,
-            }
-        ],
+    return GroupAction(
+        [headless, GroupAction([server, software_gui], condition=IfCondition(gui))]
     )
-
-
-    return robot_state_publisher_node
-
-def spawn_entity(name,robot_desc_path,xyz,rpy):
-    robot_description = Command([
-        'xacro ', robot_desc_path, 
-        ' namespace:=' , name
-    ])
-
-
-    gz_spawn_entity = Node(
-        package="ros_gz_sim",
-        executable="create",
-        name=f"{name}_spawn_entity",
-        arguments=[
-            "-stdin", robot_description,
-            "-string", robot_description, #For new verrsion of gazebo
-            "-name", name,
-            "-x", str(xyz[0]),
-            "-y", str(xyz[1]),
-            "-z", str(xyz[2]),
-            "-R", str(rpy[0]),
-            "-P", str(rpy[1]),
-            "-Y", str(rpy[2])
-        ],
-        output="screen",
-    )
-
-    return gz_spawn_entity

@@ -3,6 +3,18 @@
 <sdf version="1.9">
 
   <world name="sonoma">
+    <!-- Systems. Listing any plugin here turns off Gazebo's defaults, so the default
+         three (physics, user commands, scene broadcaster) are listed too. The sensor
+         systems serve every sensor in the world; robots must not load them again. -->
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands" />
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster" />
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu" />
+    <plugin filename="gz-sim-navsat-system" name="gz::sim::systems::NavSat" />
+
     <!-- Include the Sonoma Raceway environment -->
     <include>
       <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Sonoma Raceway</uri>

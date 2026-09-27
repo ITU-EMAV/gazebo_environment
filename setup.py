@@ -22,9 +22,8 @@ setup(
     zip_safe=True,
     maintainer="MrSkyGodz",
     maintainer_email="yunus.akdal@gmail.com",
-    description="TODO: Package description",
+    description="Gazebo Harmonic simulation of the SAC car on the Sonoma Raceway",
     license="TODO: License declaration",
-    tests_require=["pytest"],
     entry_points={
         "console_scripts": [
             "odometry_tf = gazebo_environment.odometry_tf:main",

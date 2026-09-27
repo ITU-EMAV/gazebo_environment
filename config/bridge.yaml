@@ -57,12 +57,9 @@
   direction: GZ_TO_ROS
   lazy: true
 
-- ros_topic_name: /sac/sensors/front_camera/points
-  gz_topic_name: /sac/sensors/front_camera/points
-  ros_type_name: sensor_msgs/msg/PointCloud2
-  gz_type_name: gz.msgs.PointCloudPacked
-  direction: GZ_TO_ROS
-  lazy: true
+# /sac/sensors/front_camera/points is made from the depth image by depth_image_proc
+# (see sonoma.launch.py): Gazebo's own RGB-D cloud uses x-forward axes while its header
+# names the optical frame, so it lands in the wrong place.
 
 - ros_topic_name: /sac/sensors/front_camera/camera_info
   gz_topic_name: /sac/sensors/front_camera/camera_info
