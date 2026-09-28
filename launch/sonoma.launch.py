@@ -6,6 +6,7 @@ Arguments:
   ground_truth_tf:=false
                      do not publish map -> odom -> base_footprint from Gazebo's exact pose,
                      for when a localization (e.g. robot_localization) publishes them
+  suspension:=false  a rigid car, without springs on the wheels
   world:=<args>      Gazebo arguments, default "-r <share>/worlds/sonoma.sdf"
   x, y, z, yaw       where the car starts (default: the start/finish line)
 """
@@ -50,6 +51,9 @@ def generate_launch_description():
             default_value="true",
             description="Publish map -> odom -> base_footprint from Gazebo's exact pose",
         ),
+        DeclareLaunchArgument(
+            "suspension", default_value="true", description="Springs and dampers on the wheels"
+        ),
     ] + [
         DeclareLaunchArgument(name, default_value=value, description=f"Start pose: {name}")
         for name, value in START_POSE.items()
@@ -57,7 +61,15 @@ def generate_launch_description():
 
     # value_type=str: otherwise the URDF text is parsed as YAML, and a ":" in it breaks that
     robot_description = ParameterValue(
-        Command(["xacro ", os.path.join(package_directory, "urdf", "sac.gazebo.xacro"), f" namespace:={ROBOT_NAME}"]),
+        Command(
+            [
+                "xacro ",
+                os.path.join(package_directory, "urdf", "sac.gazebo.xacro"),
+                f" namespace:={ROBOT_NAME}",
+                " suspension:=",
+                LaunchConfiguration("suspension"),
+            ]
+        ),
         value_type=str,
     )
     robot_state_publisher = Node(

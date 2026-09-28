@@ -160,6 +160,10 @@ class TrackVisual(Node):
         marker.scale.x = marker.scale.y = marker.scale.z = 1.0
         marker.mesh_resource = self.mesh_resource_url()
         marker.mesh_use_embedded_materials = True
+        # Placed with the latest transforms, not those at its (zero) stamp: when a
+        # localization publishes map -> odom (ground_truth_tf:=false) there is no transform
+        # at time zero and viewers would not draw the track
+        marker.frame_locked = True
         self.publisher.publish(marker)
         self.get_logger().info(f"Published the track model ({marker.mesh_resource})")
 

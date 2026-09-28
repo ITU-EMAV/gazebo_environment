@@ -15,6 +15,8 @@ ros2 launch gazebo_environment sonoma.launch.py            # with the Gazebo win
 ros2 launch gazebo_environment sonoma.launch.py gui:=false # headless, sensors still render
 ```
 Start pose arguments: `x`, `y`, `z`, `yaw` (default: the start/finish line).
+`suspension:=false` removes the springs on the wheels (a rigid car); `ground_truth_tf:=false`
+leaves `map -> odom -> base_footprint` to a localization (sac_localization).
 In the Docker-Workspaces headless setup the simulation starts by itself and is watched in the
 browser (Lichtblick).
 
@@ -86,20 +88,18 @@ on the real car; they are properties at the top of the URDF files (mounts and si
 | | Simulated |
 |---|---|
 | Driving | rear-wheel drive, 20 m/s top speed, 3 m/s^2 acceleration, 0.6 rad steering that follows the command in ~0.13 s (time constant) |
+| Suspension | a spring and damper on each wheel (sac_description's values: 1.4 Hz ride frequency, 0.3 damping ratio, +-8 cm travel); `suspension:=false` gives the rigid car |
 | Mass | ~880 kg; centre of mass 40/60 front/rear, 0.55 m high (rear engine) |
 | Sensor mounts | camera, lidar and GNSS hang off the `roof_rack` frame (middle of the rack, top of the profiles): ZED 2 level on a ball head at the front, VLP-16 in the middle with its base 20 cm above the roof (measured), GNSS antennas at the front-right and rear-left corners. Three IMUs are on the chassis, on the centre line: in the middle, over the front axle and over the rear axle. |
 | ZED 2 | 1280x720 at 15 Hz, 110 deg HFOV, depth 0.3-20 m, image noise |
 | VLP-16 | 16 x 1800 points at 10 Hz (0.2 deg), +-15 deg, 100 m, 1.5 cm noise |
 | IMUs | 100 Hz, BMI085-like noise (gyro 0.0017 rad/s, accel 0.012 m/s^2) and a random bias per run |
-| GNSS | 10 Hz, 0.3 m horizontal and 0.5 m vertical error for now; a standalone receiver like the real car's is about 1 m and 1.5 m (to be set back with the EKF) |
+| GNSS | 10 Hz, standalone receiver error: 1 m horizontal, 1.5 m vertical |
 
 Not like the real car:
 - `/sac/ground_truth/pose` and the default `odom -> base_footprint` TF are exact (Gazebo's pose).
 - Braking only uses the driven (rear) wheels, a limit of Gazebo's Ackermann plugin: about
   5 m/s^2 instead of the 7 m/s^2 set.
-- No suspension: the body is rigid on sphere wheels. At 10 m/s the car takes off over the
-  crest around (350, -48) on Sonoma (after the first hairpin); the landing throws it 1.5-4 m
-  sideways and sometimes rolls it over, whatever drives it. At 8 m/s it stays on its wheels.
 - The depth image has no noise (Gazebo's RGB-D camera does not model it); a real ZED 2's depth
   error grows with distance.
 

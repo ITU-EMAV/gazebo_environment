@@ -11,9 +11,29 @@
 
   <xacro:arg name="namespace" default="sac" />
   <xacro:property name="namespace" value="$(arg namespace)" />
+  <!-- Springs and dampers on the wheels (sac_description's suspension); false: a rigid car -->
+  <xacro:arg name="suspension" default="true" />
 
   <xacro:include filename="$(find sac_description)/urdf/sac.urdf.xacro" />
   <xacro:include filename="$(find gazebo_environment)/urdf/sensors.gazebo.xacro" />
+
+  <!-- ============================== Suspension ============================== -->
+  <!-- The damper is the joint's damping (sac_description); the spring is Gazebo's joint
+       spring. Its natural length makes the corner load compress it to the middle of the
+       travel at rest, so the ride height is the description's. -->
+  <xacro:macro name="suspension_spring" params="corner sprung_mass">
+    <xacro:property name="stiffness" value="${sprung_mass * (2 * pi * suspension_frequency) ** 2}" />
+    <gazebo reference="${corner}_suspension_joint">
+      <springStiffness>${stiffness}</springStiffness>
+      <springReference>${-sprung_mass * 9.80665 / stiffness}</springReference>
+    </gazebo>
+  </xacro:macro>
+  <xacro:if value="${suspension}">
+    <xacro:suspension_spring corner="front_left" sprung_mass="${front_corner_mass}" />
+    <xacro:suspension_spring corner="front_right" sprung_mass="${front_corner_mass}" />
+    <xacro:suspension_spring corner="rear_left" sprung_mass="${rear_corner_mass}" />
+    <xacro:suspension_spring corner="rear_right" sprung_mass="${rear_corner_mass}" />
+  </xacro:if>
 
   <!-- ============================== Tyres ============================== -->
   <xacro:macro name="tyre" params="wheel">

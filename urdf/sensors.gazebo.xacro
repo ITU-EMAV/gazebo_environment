@@ -70,13 +70,11 @@
     </xacro:macro>
 
     <!-- ============================== GNSS ============================== -->
-    <!-- GNSS error. Gazebo adds the horizontal noise to latitude and longitude in degrees, so
-         it is converted from metres here. Needs <spherical_coordinates> in the world for
-         real latitude/longitude.
-         For now lower than the real car's standalone (non-RTK) receiver, which is about 1.0 m
-         horizontal and 1.5 m vertical: set those back once the localization (EKF) is in. -->
-    <xacro:property name="gnss_horizontal_noise" value="0.3" />   <!-- [m] -->
-    <xacro:property name="gnss_vertical_noise" value="0.5" />     <!-- [m] -->
+    <!-- Error of a standalone (non-RTK) GNSS receiver like the real car's. Gazebo adds the
+         horizontal noise to latitude and longitude in degrees, so it is converted from metres
+         here. Needs <spherical_coordinates> in the world for real latitude/longitude. -->
+    <xacro:property name="gnss_horizontal_noise" value="1.0" />   <!-- [m] -->
+    <xacro:property name="gnss_vertical_noise" value="1.5" />     <!-- [m] -->
     <xacro:property name="gnss_velocity_noise" value="0.05" />    <!-- [m/s] -->
     <xacro:property name="metres_per_degree" value="111320.0" />
 
