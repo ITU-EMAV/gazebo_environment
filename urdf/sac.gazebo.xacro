@@ -19,8 +19,9 @@
 
   <!-- ============================== Suspension ============================== -->
   <!-- The damper is the joint's damping (sac_description); the spring is Gazebo's joint
-       spring. Its natural length makes the corner load compress it to the middle of the
-       travel at rest, so the ride height is the description's. -->
+       spring. Its natural length makes the corner load (the whole car's weight on that
+       corner) compress it to the middle of the travel at rest, so the car and its sensors
+       stand at the description's height. -->
   <xacro:macro name="suspension_spring" params="corner sprung_mass">
     <xacro:property name="stiffness" value="${sprung_mass * (2 * pi * suspension_frequency) ** 2}" />
     <gazebo reference="${corner}_suspension_joint">
@@ -93,8 +94,8 @@
       <wheel_radius>${wheel_radius}</wheel_radius>
     </wheel>
   </xacro:macro>
-  <xacro:property name="front_wheel_load" value="${(front_corner_mass + suspension_mass + wheel_mass + 1.0) * 9.80665}" />
-  <xacro:property name="rear_wheel_load" value="${(rear_corner_mass + suspension_mass + wheel_mass) * 9.80665}" />
+  <xacro:property name="front_wheel_load" value="${front_corner_mass * 9.80665}" />
+  <xacro:property name="rear_wheel_load" value="${rear_corner_mass * 9.80665}" />
   <gazebo>
     <plugin filename="gz-sim-wheel-slip-system" name="gz::sim::systems::WheelSlip">
       <xacro:wheel_slip wheel="front_left_wheel" load="${front_wheel_load}" />

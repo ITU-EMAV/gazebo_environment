@@ -165,6 +165,16 @@ def generate_launch_description():
         parameters=[{"pad_topic": f"/{ROBOT_NAME}/teleop/pad", "cmd_vel_topic": f"/{ROBOT_NAME}/actuators/cmd_vel"}],
     )
 
+    # Where the car really is, see-through, to compare with a localization in the viewer
+    ground_truth_marker = Node(
+        package=PACKAGE,
+        executable="ground_truth_marker",
+        name="ground_truth_marker",
+        output="screen",
+        parameters=[{"pose_topic": f"/{ROBOT_NAME}/ground_truth/pose"}],
+        remappings=[("~/marker", f"/{ROBOT_NAME}/ground_truth/marker")],
+    )
+
     # The track as a 3D marker, for viewers outside Gazebo (Foxglove, RViz)
     track_visual = Node(package=PACKAGE, executable="track_visual", name="track_visual", output="screen")
 
@@ -179,6 +189,7 @@ def generate_launch_description():
             camera_points,
             lidar_filter,
             web_teleop,
+            ground_truth_marker,
             track_visual,
         ]
     )

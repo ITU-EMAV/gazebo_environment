@@ -43,6 +43,7 @@ ros2 topic pub -r 10 /sac/actuators/cmd_vel geometry_msgs/msg/Twist "{linear: {x
 | `/sac/sensors/roof_lidar/points` | `sensor_msgs/PointCloud2` | VLP-16 returns only (like the Velodyne driver), up to 16 x 1800 points at 10 Hz |
 | `/sac/calculations/steering_odom` | `nav_msgs/Odometry` | wheel odometry from the steering plugin |
 | `/sac/ground_truth/pose` | `geometry_msgs/PoseStamped` | exact pose from Gazebo |
+| `/sac/ground_truth/marker` | `visualization_msgs/Marker` | a see-through copy of the car at the exact pose, to compare with a localization in the viewer |
 | `/joint_states`, `/tf`, `/tf_static`, `/clock` | | see TF below |
 | `/environment/track` | `visualization_msgs/Marker` | track model for Foxglove/Lichtblick/RViz |
 
