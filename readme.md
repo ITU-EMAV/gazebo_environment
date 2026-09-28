@@ -97,6 +97,9 @@ Not like the real car:
 - `/sac/ground_truth/pose` and the default `odom -> base_footprint` TF are exact (Gazebo's pose).
 - Braking only uses the driven (rear) wheels, a limit of Gazebo's Ackermann plugin: about
   5 m/s^2 instead of the 7 m/s^2 set.
+- No suspension: the body is rigid on sphere wheels. At 10 m/s the car takes off over the
+  crest around (350, -48) on Sonoma (after the first hairpin); the landing throws it 1.5-4 m
+  sideways and sometimes rolls it over, whatever drives it. At 8 m/s it stays on its wheels.
 - The depth image has no noise (Gazebo's RGB-D camera does not model it); a real ZED 2's depth
   error grows with distance.
 
