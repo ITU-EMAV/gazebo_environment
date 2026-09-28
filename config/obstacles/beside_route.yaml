@@ -1,0 +1,13 @@
+# Obstacles beside the driving line (3-4 m off the route), for testing the perception
+# while the car still follows the route blindly: it passes them without hitting them.
+obstacles:
+  - {name: box_1, shape: box, size: [1.0, 1.0, 1.0], s: 80.0, d: 3.5}
+  - {name: cone_1, shape: cylinder, size: [0.2, 0.7], s: 200.0, d: -3.0}
+  - {name: car_1, shape: car, s: 350.0, d: 4.0}
+  - {name: box_2, shape: box, size: [0.5, 0.5, 0.5], s: 500.0, d: -3.5}
+  - {name: pole_1, shape: cylinder, size: [0.1, 1.5], s: 700.0, d: 3.0}
+  - {name: car_2, shape: car, s: 900.0, d: -4.0, yaw: 0.3}
+  - {name: box_3, shape: box, size: [2.0, 0.5, 0.8], s: 1200.0, d: 3.5}
+  - {name: cone_2, shape: cylinder, size: [0.2, 0.7], s: 1500.0, d: -3.0}
+  - {name: box_4, shape: box, size: [1.0, 1.0, 1.0], s: 1800.0, d: 3.5}
+  - {name: car_3, shape: car, s: 2100.0, d: -4.0}

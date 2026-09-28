@@ -156,6 +156,46 @@
         <xacro:preserve_joint joint="${name}_joint" />
     </xacro:macro>
 
+    <!-- ============================== 2D lidar ============================== -->
+    <!-- A generic planar scanner: 180 deg ahead at 0.25 deg, 20 Hz, 30 m, +-2 cm (the front
+         half only: behind it is the car). Publishes <namespace>/sensors/<name>/scan -->
+    <xacro:macro name="lidar_2d_gazebo" params="name namespace update_rate:=20 samples:=721
+        min_angle:=${-pi / 2} max_angle:=${pi / 2} min_range:=0.1 max_range:=30.0 noise:=0.02">
+        <gazebo reference="${name}_frame">
+            <sensor name="${name}_sensor" type="gpu_lidar">
+                <always_on>true</always_on>
+                <update_rate>${update_rate}</update_rate>
+                <gz_frame_id>${name}_frame</gz_frame_id>
+                <topic>${namespace}/sensors/${name}/scan</topic>
+                <lidar>
+                    <scan>
+                        <horizontal>
+                            <samples>${samples}</samples>
+                            <min_angle>${min_angle}</min_angle>
+                            <max_angle>${max_angle}</max_angle>
+                        </horizontal>
+                        <vertical>
+                            <samples>1</samples>
+                            <min_angle>0</min_angle>
+                            <max_angle>0</max_angle>
+                        </vertical>
+                    </scan>
+                    <range>
+                        <min>${min_range}</min>
+                        <max>${max_range}</max>
+                        <resolution>0.01</resolution>
+                    </range>
+                    <noise>
+                        <type>gaussian</type>
+                        <mean>0.0</mean>
+                        <stddev>${noise}</stddev>
+                    </noise>
+                </lidar>
+            </sensor>
+        </gazebo>
+        <xacro:preserve_joint joint="${name}_joint" />
+    </xacro:macro>
+
     <!-- ============================== Stereolabs ZED 2 ============================== -->
     <xacro:property name="zed2_horizontal_fov" value="${110 * pi / 180}" />
     <xacro:property name="zed2_min_depth" value="0.3" />

@@ -9,6 +9,9 @@ Arguments:
   suspension:=false  a rigid car, without springs on the wheels
   tyre:=wet          tyre grip preset: dry (default), wet, gravel
   xacro_args:="..."  more arguments for the car's xacro, e.g. "tyre_mu_lateral:=0.8"
+  obstacles:=beside_route
+                     static obstacles from config/obstacles/<name>.yaml, placed along the
+                     planner's route once it is published
   world:=<args>      Gazebo arguments, default "-r <share>/worlds/sonoma.sdf"
   x, y, z, yaw       where the car starts (default: the start/finish line)
 """
@@ -25,7 +28,7 @@ from launch.actions import (
 )
 from launch.conditions import IfCondition, UnlessCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import Command, LaunchConfiguration, PathJoinSubstitution, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
@@ -59,6 +62,9 @@ def generate_launch_description():
         DeclareLaunchArgument("tyre", default_value="dry", description="Tyre grip: dry, wet, gravel"),
         DeclareLaunchArgument(
             "xacro_args", default_value="", description="More xacro arguments for the car"
+        ),
+        DeclareLaunchArgument(
+            "obstacles", default_value="", description="Obstacles: config/obstacles/<name>.yaml"
         ),
     ] + [
         DeclareLaunchArgument(name, default_value=value, description=f"Start pose: {name}")
@@ -178,6 +184,24 @@ def generate_launch_description():
     # The track as a 3D marker, for viewers outside Gazebo (Foxglove, RViz)
     track_visual = Node(package=PACKAGE, executable="track_visual", name="track_visual", output="screen")
 
+    # Static obstacles from config/obstacles/<obstacles>.yaml (placed along the planner's route)
+    obstacles = Node(
+        package=PACKAGE,
+        executable="spawn_obstacles",
+        name="spawn_obstacles",
+        output="screen",
+        parameters=[
+            {
+                "use_sim_time": True,
+                "file": PathJoinSubstitution(
+                    [package_directory, "config", "obstacles", [LaunchConfiguration("obstacles"), ".yaml"]]
+                ),
+            }
+        ],
+        remappings=[("path", f"/{ROBOT_NAME}/planning/path"), ("~/markers", f"/{ROBOT_NAME}/ground_truth/obstacles")],
+        condition=IfCondition(PythonExpression(["'", LaunchConfiguration("obstacles"), "' != ''"])),
+    )
+
     return LaunchDescription(
         arguments
         + [
@@ -191,6 +215,7 @@ def generate_launch_description():
             web_teleop,
             ground_truth_marker,
             track_visual,
+            obstacles,
         ]
     )
 

@@ -117,6 +117,7 @@
   <xacro:navsat_gazebo name="navsat_front_right" namespace="${namespace}" />
   <xacro:navsat_gazebo name="navsat_rear_left" namespace="${namespace}" />
   <xacro:vlp16_gazebo name="roof_lidar" namespace="${namespace}" />
+  <xacro:lidar_2d_gazebo name="front_lidar" namespace="${namespace}" />
 
   <!-- ============================== Gazebo systems ============================== -->
   <!-- Ground truth pose of the whole model, used by the odometry_tf node -->

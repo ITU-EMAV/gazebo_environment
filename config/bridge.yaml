@@ -111,6 +111,14 @@
   direction: GZ_TO_ROS
   lazy: true
 
+# Front 2D lidar
+- ros_topic_name: /sac/sensors/front_lidar/scan
+  gz_topic_name: /sac/sensors/front_lidar/scan
+  ros_type_name: sensor_msgs/msg/LaserScan
+  gz_type_name: gz.msgs.LaserScan
+  direction: GZ_TO_ROS
+  lazy: true
+
 # Raw cloud with the no-return rays as inf; lidar_filter publishes .../points without them
 - ros_topic_name: /sac/sensors/roof_lidar/points_raw
   gz_topic_name: /sac/sensors/roof_lidar/points

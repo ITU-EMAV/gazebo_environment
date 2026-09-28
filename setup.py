@@ -14,7 +14,8 @@ setup(
         (os.path.join("share", package_name, "urdf"), glob("urdf/*")),
         (os.path.join("share", package_name, "worlds"), glob("worlds/*")),
         (os.path.join("share", package_name, "launch"), glob("launch/*")),
-        (os.path.join("share", package_name, "config"), glob("config/*")),
+        (os.path.join("share", package_name, "config"), glob("config/*.yaml")),
+        (os.path.join("share", package_name, "config", "obstacles"), glob("config/obstacles/*")),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
@@ -29,6 +30,7 @@ setup(
             "lidar_filter = gazebo_environment.lidar_filter:main",
             "web_teleop = gazebo_environment.web_teleop:main",
             "ground_truth_marker = gazebo_environment.ground_truth_marker:main",
+            "spawn_obstacles = gazebo_environment.spawn_obstacles:main",
         ],
     },
 )
