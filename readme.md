@@ -15,7 +15,8 @@ ros2 launch gazebo_environment sonoma.launch.py            # with the Gazebo win
 ros2 launch gazebo_environment sonoma.launch.py gui:=false # headless, sensors still render
 ```
 Start pose arguments: `x`, `y`, `z`, `yaw` (default: the start/finish line).
-`suspension:=false` removes the springs on the wheels (a rigid car); `ground_truth_tf:=false`
+`tyre:=wet` (or `gravel`) changes the tyre grip, `suspension:=false` removes the springs on the
+wheels (a rigid car); `ground_truth_tf:=false`
 leaves `map -> odom -> base_footprint` to a localization (sac_localization).
 In the Docker-Workspaces headless setup the simulation starts by itself and is watched in the
 browser (Lichtblick).
@@ -89,6 +90,7 @@ on the real car; they are properties at the top of the URDF files (mounts and si
 |---|---|
 | Driving | rear-wheel drive, 20 m/s top speed, 3 m/s^2 acceleration, 0.6 rad steering that follows the command in ~0.13 s (time constant) |
 | Suspension | a spring and damper on each wheel (sac_description's values: 1.4 Hz ride frequency, 0.3 damping ratio, +-8 cm travel); `suspension:=false` gives the rigid car |
+| Tyres | grip and slip (Gazebo's WheelSlip): the tyres slip more as the force grows, 1.2 deg slip angle in Sonoma's corners at 10 m/s (dry), 1.7 deg (wet). `tyre:=dry\|wet\|gravel` presets; each value on its own with `xacro_args:="tyre_mu_lateral:=0.8"` (see `urdf/sac.gazebo.xacro`) |
 | Mass | ~880 kg; centre of mass 40/60 front/rear, 0.55 m high (rear engine) |
 | Sensor mounts | camera, lidar and GNSS hang off the `roof_rack` frame (middle of the rack, top of the profiles): ZED 2 level on a ball head at the front, VLP-16 in the middle with its base 20 cm above the roof (measured), GNSS antennas at the front-right and rear-left corners. Three IMUs are on the chassis, on the centre line: in the middle, over the front axle and over the rear axle. |
 | ZED 2 | 1280x720 at 15 Hz, 110 deg HFOV, depth 0.3-20 m, image noise |

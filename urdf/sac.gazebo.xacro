@@ -36,16 +36,73 @@
   </xacro:if>
 
   <!-- ============================== Tyres ============================== -->
+  <!-- Grip and slip of the tyres on the ground.
+         tyre:=dry|wet|gravel                a preset (default dry)
+         tyre_mu_longitudinal:=, tyre_mu_lateral:=
+                                             friction coefficients, driving/braking and sideways
+         tyre_slip_longitudinal:=, tyre_slip_lateral:=
+                                             slip compliance (Gazebo's WheelSlip): how much the
+                                             tyre slips per unit of force/load; the slip angle
+                                             [rad] is about lateral compliance x (lateral force /
+                                             load), so 0.1 is ~3 deg at half the grip, a road tyre
+       Each value overrides the preset's; from the launch file: xacro_args:="tyre_mu_lateral:=0.8". -->
+  <xacro:arg name="tyre" default="dry" />
+  <xacro:arg name="tyre_mu_longitudinal" default="" />
+  <xacro:arg name="tyre_mu_lateral" default="" />
+  <xacro:arg name="tyre_slip_longitudinal" default="" />
+  <xacro:arg name="tyre_slip_lateral" default="" />
+  <xacro:property name="tyre" value="$(arg tyre)" />
+  <!-- Presets: [mu longitudinal, mu lateral, slip longitudinal, slip lateral]. An unknown name
+       fails with "tyre_preset not defined". -->
+  <xacro:if value="${tyre == 'dry'}">
+    <xacro:property name="tyre_preset" value="${[1.1, 1.0, 0.05, 0.1]}" />
+  </xacro:if>
+  <xacro:if value="${tyre == 'wet'}">
+    <xacro:property name="tyre_preset" value="${[0.7, 0.6, 0.08, 0.15]}" />
+  </xacro:if>
+  <xacro:if value="${tyre == 'gravel'}">
+    <xacro:property name="tyre_preset" value="${[0.55, 0.5, 0.15, 0.3]}" />
+  </xacro:if>
+  <xacro:property name="tyre_mu_longitudinal" value="${float('$(arg tyre_mu_longitudinal)' or tyre_preset[0])}" />
+  <xacro:property name="tyre_mu_lateral" value="${float('$(arg tyre_mu_lateral)' or tyre_preset[1])}" />
+  <xacro:property name="tyre_slip_longitudinal" value="${float('$(arg tyre_slip_longitudinal)' or tyre_preset[2])}" />
+  <xacro:property name="tyre_slip_lateral" value="${float('$(arg tyre_slip_lateral)' or tyre_preset[3])}" />
+
+  <!-- fdir1 is the first friction direction in the wheel link's frame: its z axis, the axle.
+       So mu1 is the sideways grip and mu2 the grip along the tyre, whichever way the wheel
+       turns or steers (and WheelSlip's lateral slip goes with fdir1 too). -->
   <xacro:macro name="tyre" params="wheel">
     <gazebo reference="${wheel}">
-      <mu1>1.1</mu1>
-      <mu2>1.1</mu2>
+      <mu1>${tyre_mu_lateral}</mu1>
+      <mu2>${tyre_mu_longitudinal}</mu2>
+      <fdir1>0 0 1</fdir1>
     </gazebo>
   </xacro:macro>
   <xacro:tyre wheel="front_left_wheel" />
   <xacro:tyre wheel="front_right_wheel" />
   <xacro:tyre wheel="rear_left_wheel" />
   <xacro:tyre wheel="rear_right_wheel" />
+
+  <!-- Slip grows with the force on the tyre, like a real one, instead of full grip up to the
+       friction limit. The load is the corner's weight at rest. -->
+  <xacro:macro name="wheel_slip" params="wheel load">
+    <wheel link_name="${wheel}">
+      <slip_compliance_longitudinal>${tyre_slip_longitudinal}</slip_compliance_longitudinal>
+      <slip_compliance_lateral>${tyre_slip_lateral}</slip_compliance_lateral>
+      <wheel_normal_force>${load}</wheel_normal_force>
+      <wheel_radius>${wheel_radius}</wheel_radius>
+    </wheel>
+  </xacro:macro>
+  <xacro:property name="front_wheel_load" value="${(front_corner_mass + suspension_mass + wheel_mass + 1.0) * 9.80665}" />
+  <xacro:property name="rear_wheel_load" value="${(rear_corner_mass + suspension_mass + wheel_mass) * 9.80665}" />
+  <gazebo>
+    <plugin filename="gz-sim-wheel-slip-system" name="gz::sim::systems::WheelSlip">
+      <xacro:wheel_slip wheel="front_left_wheel" load="${front_wheel_load}" />
+      <xacro:wheel_slip wheel="front_right_wheel" load="${front_wheel_load}" />
+      <xacro:wheel_slip wheel="rear_left_wheel" load="${rear_wheel_load}" />
+      <xacro:wheel_slip wheel="rear_right_wheel" load="${rear_wheel_load}" />
+    </plugin>
+  </gazebo>
 
   <!-- ============================== Sensors ============================== -->
   <!-- Keep the rack as its own link, so the sensors hang off it -->

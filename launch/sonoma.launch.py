@@ -7,6 +7,8 @@ Arguments:
                      do not publish map -> odom -> base_footprint from Gazebo's exact pose,
                      for when a localization (e.g. robot_localization) publishes them
   suspension:=false  a rigid car, without springs on the wheels
+  tyre:=wet          tyre grip preset: dry (default), wet, gravel
+  xacro_args:="..."  more arguments for the car's xacro, e.g. "tyre_mu_lateral:=0.8"
   world:=<args>      Gazebo arguments, default "-r <share>/worlds/sonoma.sdf"
   x, y, z, yaw       where the car starts (default: the start/finish line)
 """
@@ -54,6 +56,10 @@ def generate_launch_description():
         DeclareLaunchArgument(
             "suspension", default_value="true", description="Springs and dampers on the wheels"
         ),
+        DeclareLaunchArgument("tyre", default_value="dry", description="Tyre grip: dry, wet, gravel"),
+        DeclareLaunchArgument(
+            "xacro_args", default_value="", description="More xacro arguments for the car"
+        ),
     ] + [
         DeclareLaunchArgument(name, default_value=value, description=f"Start pose: {name}")
         for name, value in START_POSE.items()
@@ -68,6 +74,10 @@ def generate_launch_description():
                 f" namespace:={ROBOT_NAME}",
                 " suspension:=",
                 LaunchConfiguration("suspension"),
+                " tyre:=",
+                LaunchConfiguration("tyre"),
+                " ",
+                LaunchConfiguration("xacro_args"),
             ]
         ),
         value_type=str,
