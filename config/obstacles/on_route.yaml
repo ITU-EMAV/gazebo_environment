@@ -1,0 +1,12 @@
+# Obstacles on the driving line, for the local planner: the car has to go around each.
+# size: [along the route, across, height]; d: to the left of the route.
+obstacles:
+  - {name: box_a, shape: box, size: [1.0, 1.0, 1.0], s: 150.0, d: 0.0}
+  - {name: car_a, shape: car, s: 400.0, d: 0.5}
+  - {name: cone_a, shape: cylinder, size: [0.2, 0.7], s: 650.0, d: -1.0}
+  - {name: cone_b, shape: cylinder, size: [0.2, 0.7], s: 675.0, d: 1.0}
+  - {name: box_b, shape: box, size: [1.0, 2.0, 1.0], s: 900.0, d: 1.5}
+  - {name: car_b, shape: car, s: 1300.0, d: -0.5}
+  - {name: box_c, shape: box, size: [1.0, 1.0, 1.0], s: 1700.0, d: 0.0}
+  - {name: car_c, shape: car, s: 2200.0, d: 1.0}
+  - {name: box_d, shape: box, size: [1.0, 1.0, 1.0], s: 2700.0, d: -1.0}

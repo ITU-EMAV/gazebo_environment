@@ -1,0 +1,4 @@
+# A wall across the whole track 150 m after the start: no way past, the car has to stop
+# before it. size: [along the route, across, height].
+obstacles:
+  - {name: wall, shape: box, size: [0.5, 20.0, 1.2], s: 150.0, d: 0.0}
