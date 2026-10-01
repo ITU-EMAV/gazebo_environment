@@ -1,0 +1,8 @@
+# People crossing the track in front of the car: each starts walking when the car is 35 m from
+# the crossing point, so a car keeping 10 m/s would meet them on the road (the planner must
+# yield). 12-16 m across, from either side, at a walk and a run.
+pedestrians:
+  - {name: walker_1, s: 400.0, from_d: -6.0, to_d: 6.0, speed: 1.4, trigger: 35.0}
+  - {name: walker_2, s: 1100.0, from_d: 6.0, to_d: -6.0, speed: 1.0, trigger: 35.0}
+  - {name: runner_1, s: 1900.0, from_d: -8.0, to_d: 8.0, speed: 2.5, trigger: 40.0}
+  - {name: walker_3, s: 2600.0, from_d: 7.0, to_d: -7.0, speed: 1.4, trigger: 35.0}

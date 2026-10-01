@@ -12,6 +12,9 @@ Arguments:
   obstacles:=beside_route
                      static obstacles from config/obstacles/<name>.yaml, placed along the
                      planner's route once it is published
+  pedestrians:=crossing
+                     people crossing the track from config/pedestrians/<name>.yaml, each
+                     walking across when the car comes near
   world:=<args>      Gazebo arguments, default "-r <share>/worlds/sonoma.sdf"
   x, y, z, yaw       where the car starts (default: the start/finish line)
 """
@@ -65,6 +68,9 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "obstacles", default_value="", description="Obstacles: config/obstacles/<name>.yaml"
+        ),
+        DeclareLaunchArgument(
+            "pedestrians", default_value="", description="People crossing: config/pedestrians/<name>.yaml"
         ),
     ] + [
         DeclareLaunchArgument(name, default_value=value, description=f"Start pose: {name}")
@@ -202,9 +208,42 @@ def generate_launch_description():
         condition=IfCondition(PythonExpression(["'", LaunchConfiguration("obstacles"), "' != ''"])),
     )
 
+    # People crossing from config/pedestrians/<pedestrians>.yaml, moved through set_pose
+    has_pedestrians = IfCondition(PythonExpression(["'", LaunchConfiguration("pedestrians"), "' != ''"]))
+    pedestrians = Node(
+        package=PACKAGE,
+        executable="walk_pedestrians",
+        name="walk_pedestrians",
+        output="screen",
+        parameters=[
+            {
+                "use_sim_time": True,
+                "file": PathJoinSubstitution(
+                    [package_directory, "config", "pedestrians", [LaunchConfiguration("pedestrians"), ".yaml"]]
+                ),
+            }
+        ],
+        remappings=[
+            ("path", f"/{ROBOT_NAME}/planning/path"),
+            ("pose", f"/{ROBOT_NAME}/ground_truth/pose"),
+            ("~/markers", f"/{ROBOT_NAME}/ground_truth/pedestrians"),
+        ],
+        condition=has_pedestrians,
+    )
+    set_pose_bridge = Node(
+        package="ros_gz_bridge",
+        executable="parameter_bridge",
+        name="set_pose_bridge",
+        output="screen",
+        arguments=["/world/sonoma/set_pose@ros_gz_interfaces/srv/SetEntityPose"],
+        condition=has_pedestrians,
+    )
+
     return LaunchDescription(
         arguments
         + [
+            pedestrians,
+            set_pose_bridge,
             gazebo(world, gui),
             robot_state_publisher,
             spawn,

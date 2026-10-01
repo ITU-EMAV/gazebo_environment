@@ -16,6 +16,7 @@ setup(
         (os.path.join("share", package_name, "launch"), glob("launch/*")),
         (os.path.join("share", package_name, "config"), glob("config/*.yaml")),
         (os.path.join("share", package_name, "config", "obstacles"), glob("config/obstacles/*")),
+        (os.path.join("share", package_name, "config", "pedestrians"), glob("config/pedestrians/*")),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
@@ -31,6 +32,7 @@ setup(
             "web_teleop = gazebo_environment.web_teleop:main",
             "ground_truth_marker = gazebo_environment.ground_truth_marker:main",
             "spawn_obstacles = gazebo_environment.spawn_obstacles:main",
+            "walk_pedestrians = gazebo_environment.walk_pedestrians:main",
         ],
     },
 )

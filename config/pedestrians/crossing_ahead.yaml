@@ -1,0 +1,8 @@
+# The same crossings started early (the car 80-90 m away), so a car driving the route blindly
+# passes behind them, about 3 m clear: for watching the perception follow people walking,
+# without a planner that yields.
+pedestrians:
+  - {name: walker_1, s: 400.0, from_d: -8.0, to_d: 8.0, speed: 1.4, trigger: 80.0}
+  - {name: walker_2, s: 1100.0, from_d: 8.0, to_d: -8.0, speed: 1.0, trigger: 90.0}
+  - {name: runner_1, s: 1900.0, from_d: -9.0, to_d: 9.0, speed: 2.5, trigger: 60.0}
+  - {name: walker_3, s: 2600.0, from_d: 8.0, to_d: -8.0, speed: 1.4, trigger: 80.0}
