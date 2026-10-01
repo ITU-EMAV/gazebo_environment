@@ -1,0 +1,38 @@
+# Many obstacles beside the driving line (3-4.5 m off the route), every ~100 m: boxes, cones,
+# poles, parked cars, people standing alone and in pairs 1 m apart (the clustering must
+# keep them two). For the objects (clustering, tracking); the car passes them all.
+obstacles:
+  - {name: person_1, shape: cylinder, size: [0.25, 1.75], s: 60.0, d: 3.5}
+  - {name: box_1, shape: box, size: [1.0, 1.0, 1.0], s: 160.0, d: -3.5}
+  - {name: cone_1, shape: cylinder, size: [0.2, 0.7], s: 260.0, d: 3.0}
+  - {name: car_1, shape: car, s: 360.0, d: -4.5, yaw: 0.0}
+  - {name: person_pair1_1, shape: cylinder, size: [0.25, 1.75], s: 460.0, d: 3.2}
+  - {name: person_pair1_2, shape: cylinder, size: [0.25, 1.75], s: 460.0, d: 4.2}
+  - {name: pole_1, shape: cylinder, size: [0.1, 1.5], s: 560.0, d: -3.0}
+  - {name: small_box_1, shape: box, size: [0.5, 0.5, 0.5], s: 660.0, d: 3.5}
+  - {name: long_box_1, shape: box, size: [2.0, 0.5, 0.8], s: 760.0, d: -3.5}
+  - {name: person_2, shape: cylinder, size: [0.25, 1.75], s: 860.0, d: 3.5}
+  - {name: box_2, shape: box, size: [1.0, 1.0, 1.0], s: 960.0, d: -3.5}
+  - {name: cone_2, shape: cylinder, size: [0.2, 0.7], s: 1060.0, d: 3.0}
+  - {name: car_2, shape: car, s: 1160.0, d: -4.5, yaw: 0.2}
+  - {name: person_pair2_1, shape: cylinder, size: [0.25, 1.75], s: 1260.0, d: 3.2}
+  - {name: person_pair2_2, shape: cylinder, size: [0.25, 1.75], s: 1260.0, d: 4.2}
+  - {name: pole_2, shape: cylinder, size: [0.1, 1.5], s: 1360.0, d: -3.0}
+  - {name: small_box_2, shape: box, size: [0.5, 0.5, 0.5], s: 1460.0, d: 3.5}
+  - {name: long_box_2, shape: box, size: [2.0, 0.5, 0.8], s: 1560.0, d: -3.5}
+  - {name: person_3, shape: cylinder, size: [0.25, 1.75], s: 1660.0, d: 3.5}
+  - {name: box_3, shape: box, size: [1.0, 1.0, 1.0], s: 1760.0, d: -3.5}
+  - {name: cone_3, shape: cylinder, size: [0.2, 0.7], s: 1860.0, d: 3.0}
+  - {name: car_3, shape: car, s: 1960.0, d: -4.5, yaw: -0.2}
+  - {name: person_pair3_1, shape: cylinder, size: [0.25, 1.75], s: 2060.0, d: 3.2}
+  - {name: person_pair3_2, shape: cylinder, size: [0.25, 1.75], s: 2060.0, d: 4.2}
+  - {name: pole_3, shape: cylinder, size: [0.1, 1.5], s: 2160.0, d: -3.0}
+  - {name: small_box_3, shape: box, size: [0.5, 0.5, 0.5], s: 2260.0, d: 3.5}
+  - {name: long_box_3, shape: box, size: [2.0, 0.5, 0.8], s: 2360.0, d: -3.5}
+  - {name: person_4, shape: cylinder, size: [0.25, 1.75], s: 2460.0, d: 3.5}
+  - {name: box_4, shape: box, size: [1.0, 1.0, 1.0], s: 2560.0, d: -3.5}
+  - {name: cone_4, shape: cylinder, size: [0.2, 0.7], s: 2660.0, d: 3.0}
+  - {name: car_4, shape: car, s: 2760.0, d: -4.5, yaw: 0.0}
+  - {name: person_pair4_1, shape: cylinder, size: [0.25, 1.75], s: 2860.0, d: 3.2}
+  - {name: person_pair4_2, shape: cylinder, size: [0.25, 1.75], s: 2860.0, d: 4.2}
+  - {name: pole_4, shape: cylinder, size: [0.1, 1.5], s: 2960.0, d: -3.0}
