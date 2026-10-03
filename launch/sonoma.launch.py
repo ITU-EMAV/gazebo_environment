@@ -12,6 +12,10 @@ Arguments:
   obstacles:=beside_route
                      static obstacles from config/obstacles/<name>.yaml, placed along the
                      planner's route once it is published
+  lidar_distortion:=true
+                     the roof lidar's cloud as a spinning lidar sees it moving: stamped at the
+                     scan's start, each point with its time and where the sensor was then
+                     (lidar_filter.py); whatever reads it must deskew
   pedestrians:=crossing
                      people crossing the track from config/pedestrians/<name>.yaml, each
                      walking across when the car comes near
@@ -71,6 +75,9 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             "pedestrians", default_value="", description="People crossing: config/pedestrians/<name>.yaml"
+        ),
+        DeclareLaunchArgument(
+            "lidar_distortion", default_value="false", description="The roof lidar's motion distortion (deskew needed)"
         ),
     ] + [
         DeclareLaunchArgument(name, default_value=value, description=f"Start pose: {name}")
@@ -164,8 +171,11 @@ def generate_launch_description():
             {
                 "input": f"/{ROBOT_NAME}/sensors/roof_lidar/points_raw",
                 "output": f"/{ROBOT_NAME}/sensors/roof_lidar/points",
+                "distort": PythonExpression(["'", LaunchConfiguration("lidar_distortion"), "' == 'true'"]),
+                "use_sim_time": True,
             }
         ],
+        remappings=[("pose", f"/{ROBOT_NAME}/ground_truth/pose")],
     )
 
     # Drive from the viewer's Teleop panel (/sac/teleop/pad), like a cruise control
